@@ -1,18 +1,32 @@
 // سامانه جامع پروژه مهر — ناحیه ۴ شیراز
-// auth.js — احراز هویت Supabase Auth  v6.1
+// auth.js — احراز هویت Supabase Auth  v6.4
+// جریان: ثبت‌نام → ساخت کاربر در Auth با approved=false → تأیید ناظر → ورود
 
 /* ===== وضعیت کاربر جاری ===== */
 let _currentUser = null;
 
 function getCurrentUser() { return _currentUser; }
 
-/* ===== ورود با ایمیل و رمز ===== */
+/* ===== ساخت ایمیل داخلی از روی کد پرسنلی ===== */
+// نکته: دامنه باید واقعی و دارای MX باشد وگرنه Supabase خطای
+// «Email address is invalid» می‌دهد. gmail.com مطمئن‌ترین گزینه است.
+// کاربر این ایمیل را نمی‌بیند و واقعی بودنش لازم نیست، چون «Confirm email» خاموش است.
+function _codeToEmail(code) {
+  const clean = String(code).trim()
+    .replace(/[۰-۹]/g, d => '0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)])
+    .replace(/[٠-٩]/g, d => '0123456789'['٠١٢٣٤٥٦٧٨٩'.indexOf(d)])
+    .replace(/\D/g, '');
+  return `mehr.p${clean}@gmail.com`;
+}
+
+/* ===== ورود با کد پرسنلی و رمز ===== */
 async function login() {
-  const email    = document.getElementById('loginEmail').value.trim();
+  const code     = document.getElementById('loginCode').value.trim();
   const password = document.getElementById('personnelCode').value.trim();
 
-  if (!email || !password) { toastErr('ایمیل و رمز عبور را وارد کنید.'); return; }
+  if (!code || !password) { toastErr('کد پرسنلی و رمز عبور را وارد کنید.'); return; }
 
+  const email = _codeToEmail(code);
   const loginBtn = document.getElementById('loginBtn');
   if (loginBtn) { loginBtn.disabled = true; loginBtn.innerText = '⏳ در حال ورود...'; }
 
@@ -22,34 +36,51 @@ async function login() {
 
     const authUser = data.user;
 
-    // دریافت پروفایل (باید توسط trigger روی auth.users ساخته شده باشد)
+    // دریافت پروفایل
     let profile = null;
     try {
-      profile = await safeQuery(() =>
-        _supabase.from('profiles').select('*').eq('id', authUser.id).single()
-      , 'auth.login.profileFetch');
-    } catch(e) {
-      // اگر پروفایل پیدا نشد، یک‌بار با کمی تأخیر دوباره تلاش می‌کنیم
-      // (در موارد نادر trigger ممکن است چند صد میلی‌ثانیه طول بکشد)
-      await new Promise(res => setTimeout(res, 800));
-      try {
-        profile = await safeQuery(() =>
-          _supabase.from('profiles').select('*').eq('id', authUser.id).single()
-        , 'auth.login.profileFetchRetry');
-      } catch(e2) {
-        console.error('Profile not found after retry:', e2.message);
-        await _supabase.auth.signOut();
-        toastErr('پروفایل کاربری یافت نشد. لطفاً با مدیر سامانه تماس بگیرید.');
-        if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = 'ورود به سامانه ←'; }
-        return;
+      const { data: profRows } = await _supabase
+        .from('profiles').select('*').eq('id', authUser.id).limit(1);
+      if (profRows && profRows.length) {
+        profile = profRows[0];
+      } else {
+        // پروفایل وجود ندارد؛ با upsert می‌سازیم تا خطای کلید تکراری ندهد
+        const { data: created } = await _supabase
+          .from('profiles')
+          .upsert({
+            id:             authUser.id,
+            full_name:      authUser.email,
+            role:           'teacher',
+            personnel_code: code,
+            approved:       false
+          }, { onConflict: 'id' })
+          .select()
+          .limit(1);
+        profile = (created && created.length) ? created[0]
+          : { id: authUser.id, full_name: authUser.email, role: 'teacher', approved: false };
       }
+    } catch(e) {
+      console.warn('Profile read error:', e.message);
+      // در صورت خطا، یک‌بار دیگر فقط می‌خوانیم (بدون insert) تا duplicate نشود
+      try {
+        const { data: retry } = await _supabase
+          .from('profiles').select('*').eq('id', authUser.id).limit(1);
+        if (retry && retry.length) profile = retry[0];
+      } catch(e2) {}
+    }
+
+    // اگر کاربر هنوز توسط ناظر تأیید نشده، اجازه ورود نده
+    if (profile && profile.approved !== true) {
+      await _supabase.auth.signOut();
+      toastErr('حساب شما هنوز توسط ناظر منطقه تأیید نشده است. لطفاً پس از تأیید دوباره تلاش کنید.');
+      return;
     }
 
     _currentUser = {
       id:        authUser.id,
       email:     authUser.email,
-      role:      profile.role,
-      full_name: profile.full_name || authUser.email
+      role:      profile?.role || 'teacher',
+      full_name: profile?.full_name || authUser.email
     };
 
     // لاگ ورود
@@ -62,12 +93,171 @@ async function login() {
 
   } catch(e) {
     const msg = e.message === 'Invalid login credentials'
-      ? 'ایمیل یا رمز عبور اشتباه است.'
+      ? 'کد پرسنلی یا رمز عبور اشتباه است.'
       : 'خطا در ورود: ' + e.message;
     toastErr(msg);
   } finally {
     if (loginBtn) { loginBtn.disabled = false; loginBtn.innerText = 'ورود به سامانه ←'; }
   }
+}
+
+/* ===== نمایش/مخفی‌کردن فرم ثبت‌نام ===== */
+function showRegisterForm() {
+  const loginCard = document.querySelector('#loginPage .card');   // اولین کارت = ورود
+  if (loginCard) loginCard.style.display = 'none';
+  const reg = document.getElementById('registerForm');
+  if (reg) reg.style.display = 'block';
+}
+function hideRegisterForm() {
+  const reg = document.getElementById('registerForm');
+  if (reg) reg.style.display = 'none';
+  const loginCard = document.querySelector('#loginPage .card');
+  if (loginCard) loginCard.style.display = 'block';
+}
+
+/* ===== ثبت‌نام با کد پرسنلی (در انتظار تأیید ناظر) ===== */
+// کاربر در Supabase Auth ساخته می‌شود ولی با approved=false.
+// رمز را خود Supabase امن نگه می‌دارد (دیگر SHA256 دستی لازم نیست).
+async function registerRequest() {
+  if (window._registerBusy) return;
+  window._registerBusy = true;
+
+  const name     = document.getElementById('regName').value.trim();
+  const code     = document.getElementById('regCode').value.trim();
+  const school   = document.getElementById('regSchool').value.trim();
+  const role     = document.getElementById('regRole').value;
+  const password = document.getElementById('regPassword').value.trim();
+
+  if (!name || !code || !password) {
+    window._registerBusy = false;
+    toastErr('نام، کد پرسنلی و رمز عبور را کامل وارد کنید.');
+    return;
+  }
+  if (password.length < 6) {
+    window._registerBusy = false;
+    toastErr('رمز عبور باید حداقل ۶ کاراکتر باشد.');
+    return;
+  }
+  // کد پرسنلی باید حداقل ۴ رقم باشد
+  const codeDigits = String(code).replace(/\D/g, '');
+  if (codeDigits.length < 4) {
+    window._registerBusy = false;
+    toastErr('کد پرسنلی باید حداقل ۴ رقم باشد.');
+    return;
+  }
+
+  const regBtn = document.getElementById('registerSubmitBtn');
+  if (regBtn) { regBtn.disabled = true; regBtn.innerText = '⏳ در حال ارسال...'; }
+
+  try {
+    const email = _codeToEmail(code);
+
+    // ساخت کاربر در Supabase Auth. trigger پروفایل را با approved=false می‌سازد.
+    const { data, error } = await _supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name:      name,
+          role:           role,
+          personnel_code: code,
+          school_name:    school || null
+        }
+      }
+    });
+
+    if (error) {
+      // خطاهای رایج را به فارسی ترجمه کن
+      let msg = error.message;
+      if (/already registered|already been registered|User already/i.test(msg)) {
+        msg = 'این کد پرسنلی قبلاً ثبت شده است.';
+      } else if (/invalid/i.test(msg) && /email/i.test(msg)) {
+        msg = 'کد پرسنلی پذیرفته نشد. لطفاً فقط رقم وارد کنید و دوباره تلاش کنید.';
+      } else if (/rate limit/i.test(msg)) {
+        msg = 'تعداد درخواست‌ها زیاد بوده است. چند دقیقه بعد دوباره تلاش کنید.';
+      } else if (/at least/i.test(msg) && /character/i.test(msg)) {
+        msg = 'رمز عبور باید حداقل ۶ کاراکتر باشد.';
+      }
+      throw new Error(msg);
+    }
+
+    // signUp ممکن است session بسازد؛ خارج می‌شویم تا کاربر تأییدنشده وارد نماند.
+    try { await _supabase.auth.signOut(); } catch(e) {}
+
+    toastOk('درخواست ثبت‌نام شما ارسال شد. پس از تأیید ناظر منطقه می‌توانید وارد شوید.');
+    hideRegisterForm();
+    document.getElementById('regName').value     = '';
+    document.getElementById('regCode').value     = '';
+    document.getElementById('regSchool').value   = '';
+    document.getElementById('regPassword').value = '';
+
+  } catch(e) {
+    toastErr('خطا در ثبت‌نام: ' + e.message);
+  } finally {
+    window._registerBusy = false;
+    if (regBtn) { regBtn.disabled = false; regBtn.innerText = 'ارسال درخواست'; }
+  }
+}
+
+/* ===== تأیید کاربر توسط ناظر ===== */
+async function approveUser(id) {
+  if (!_currentUser || !['admin','inspector'].includes(_currentUser.role)) {
+    toastErr('شما اجازه تأیید کاربران را ندارید.');
+    return;
+  }
+  try {
+    await sbUsers.update(id, { approved: true });
+    const idx = users.findIndex(u => String(u.id) === String(id));
+    if (idx !== -1) users[idx].approved = true;
+    renderUsers();
+    if (typeof renderPendingUsers === 'function') renderPendingUsers();
+    toastOk('کاربر تأیید شد و اکنون می‌تواند وارد شود.');
+    await addLog('edit', 'تأیید کاربر', `کاربر با شناسه ${id} تأیید شد`);
+  } catch(e) {
+    toastErr('خطا در تأیید کاربر: ' + e.message);
+  }
+}
+
+/* ===== رد/حذف درخواست توسط ناظر ===== */
+async function rejectUser(id) {
+  if (!_currentUser || !['admin','inspector'].includes(_currentUser.role)) {
+    toastErr('شما اجازه حذف کاربران را ندارید.');
+    return;
+  }
+  const ok = await showConfirm('این درخواست حذف شود؟', 'حذف درخواست', '🗑️');
+  if (!ok) return;
+  try {
+    await sbUsers.remove(id);   // فقط پروفایل حذف می‌شود
+    users = users.filter(u => String(u.id) !== String(id));
+    renderUsers();
+    if (typeof renderPendingUsers === 'function') renderPendingUsers();
+    toastOk('درخواست حذف شد.');
+    await addLog('delete', 'حذف درخواست کاربر', `کاربر با شناسه ${id} حذف شد`);
+  } catch(e) {
+    toastErr('خطا در حذف: ' + e.message);
+  }
+}
+
+/* ===== لیست کاربران در انتظار تأیید (برای پنل ناظر) ===== */
+function renderPendingUsers() {
+  const box = document.getElementById('pendingUsersList');
+  if (!box) return;
+  const pending = (users || []).filter(u => u.approved !== true);
+  if (!pending.length) {
+    box.innerHTML = '<div class="empty-state"><div class="empty-ico">✅</div><div class="empty-text">درخواست در انتظار تأییدی وجود ندارد.</div></div>';
+    return;
+  }
+  box.innerHTML = pending.map(u => `
+    <div class="info-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <div>
+        <b>${escapeHtml(u.full_name || '—')}</b>
+        <div style="font-size:12px;color:#666;">کد پرسنلی: ${escapeHtml(u.personnel_code || '—')} — سمت: ${escapeHtml(u.role || '—')}${u.school_name ? ' — مدرسه: ' + escapeHtml(u.school_name) : ''}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-success" style="padding:6px 12px;font-size:13px;" data-action="approveUser" data-id="${u.id}">✔ تأیید</button>
+        <button class="btn btn-danger"  style="padding:6px 12px;font-size:13px;" data-action="rejectUser"  data-id="${u.id}">✖ رد</button>
+      </div>
+    </div>`).join('');
 }
 
 /* ===== خروج ===== */
@@ -94,11 +284,13 @@ async function restoreSession() {
 
     let profile = null;
     try {
-      profile = await safeQuery(() =>
-        _supabase.from('profiles').select('*').eq('id', session.user.id).single()
-      , 'auth.restoreSession.profileFetch');
-    } catch(e) {
-      console.warn('restoreSession: profile missing, logging out', e.message);
+      const { data: rows } = await _supabase
+        .from('profiles').select('*').eq('id', session.user.id).limit(1);
+      if (rows && rows.length) profile = rows[0];
+    } catch(e) { console.warn('restoreSession profile:', e.message); }
+
+    // اگر تأیید نشده، session را پاک کن
+    if (!profile || profile.approved !== true) {
       await _supabase.auth.signOut();
       return false;
     }
@@ -106,8 +298,8 @@ async function restoreSession() {
     _currentUser = {
       id:        session.user.id,
       email:     session.user.email,
-      role:      profile.role,
-      full_name: profile.full_name || session.user.email
+      role:      profile?.role || 'teacher',
+      full_name: profile?.full_name || session.user.email
     };
 
     await _loadAllDataAndShowDashboard();
@@ -151,6 +343,8 @@ async function _loadAllDataAndShowDashboard() {
   if (nameEl)  nameEl.textContent  = _currentUser.full_name;
   if (roleEl)  roleEl.textContent  = _currentUser.role;
 
+  applyRoleVisibility();
+
   updateDashboard();
   renderUsers(); renderMembers(); renderActivities();
   renderDocuments(); loadActivitiesToDocuments();
@@ -159,15 +353,74 @@ async function _loadAllDataAndShowDashboard() {
   renderReportsList();
 }
 
+/* ===== کنترل نمایش منوها بر اساس نقش ===== */
+// منوهای مدیریتی فقط برای admin/inspector نمایش داده می‌شوند.
+function applyRoleVisibility() {
+  const isAdmin = _currentUser && ['admin','inspector'].includes(_currentUser.role);
+  const adminSelectors = [
+    '[data-section="usersSection"]',
+    '[data-section="membersSection"]',
+    '[data-section="groupsSection"]',
+    '[data-section="observerSection"]',
+    '#navBtnInspector',
+    '#drawer-users',
+    '#drawer-members',
+    '#drawer-groups',
+    '#drawer-observer',
+    '#drawer-inspector'
+  ];
+  adminSelectors.forEach(sel => {
+    document.querySelectorAll(sel).forEach(el => {
+      el.style.display = isAdmin ? '' : 'none';
+    });
+  });
+  if (!isAdmin) {
+    ['usersSection','membersSection','groupsSection','observerSection','inspectorSection'].forEach(id => {
+      const s = document.getElementById(id);
+      if (s) s.style.display = 'none';
+    });
+  }
+}
+
 /* ===== INSPECTOR PANEL ===== */
 function openInspectorPanel() {
   document.getElementById('navMenu').classList.remove('open');
+  // فقط ناظر منطقه (admin/inspector) اجازه دارد. معلم و سایر نقش‌ها رد می‌شوند.
   if (_currentUser && ['inspector','admin'].includes(_currentUser.role)) {
     showSection('inspectorSection');
     renderInspectorPanel();
+  } else {
+    toastErr('این بخش فقط برای ناظر منطقه در دسترس است.');
+  }
+}
+
+const INSPECTOR_PASSWORD_HASH = '28619d4f2134176fc6593336c550318ac470d081f064b77a5b44629bba4002e9';
+
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function cancelInspectorPanel() {
+  document.getElementById('inspectorModal').style.display = 'none';
+}
+
+async function checkInspectorPassword() {
+  // علاوه بر رمز، نقش کاربر هم باید ناظر/ادمین باشد
+  if (!_currentUser || !['inspector','admin'].includes(_currentUser.role)) {
+    document.getElementById('inspectorModal').style.display = 'none';
+    toastErr('این بخش فقط برای ناظر منطقه در دسترس است.');
     return;
   }
-  toastErr('دسترسی به این بخش فقط برای ناظر و مدیر سامانه است.');
+  const val  = document.getElementById('inspectorPassword').value;
+  const hash = await sha256Hex(val);
+  if (hash === INSPECTOR_PASSWORD_HASH) {
+    document.getElementById('inspectorModal').style.display = 'none';
+    showSection('inspectorSection');
+    await renderInspectorPanel();
+  } else {
+    document.getElementById('inspectorPassError').style.display = 'block';
+  }
 }
 
 function closeInspectorPanel() {
@@ -176,6 +429,8 @@ function closeInspectorPanel() {
 }
 
 async function renderInspectorPanel() {
+  renderPendingUsers();   // لیست کاربران در انتظار تأیید
+
   const doneActivities = activities.filter(a => a.done).length;
   document.getElementById('insActivityDone').innerText = doneActivities + ' / 84';
   document.getElementById('insSchoolCount').innerText  = schools.length;
@@ -229,21 +484,4 @@ async function renderInspectorPanel() {
           }).join('');
     }
   } catch(e) { document.getElementById('insLoginCount').innerText = '—'; }
-
-  const errorsTable = document.getElementById('insErrorsTable');
-  if (errorsTable) {
-    try {
-      const errors = await sbSystemErrors.getAll(50);
-      errorsTable.innerHTML = !errors.length
-        ? '<tr><td colspan="4"><div class="empty-state"><div class="empty-ico">✅</div><div class="empty-text">هیچ خطایی ثبت نشده است.</div></div></td></tr>'
-        : errors.map(er => {
-            const d    = er.created_at ? new Date(er.created_at) : null;
-            const date = d ? d.toLocaleDateString('fa-IR') : '—';
-            const time = d ? d.toLocaleTimeString('fa-IR', {hour:'2-digit',minute:'2-digit'}) : '—';
-            return `<tr><td>${date} ${time}</td><td>${escapeHtml(er.context||'—')}</td><td>${escapeHtml(er.message||'—')}</td><td>${escapeHtml(er.user_name||'—')}</td></tr>`;
-          }).join('');
-    } catch(e) {
-      errorsTable.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="empty-text">خطا در بارگذاری لاگ خطاها.</div></div></td></tr>';
-    }
-  }
 }

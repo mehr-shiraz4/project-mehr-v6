@@ -1,54 +1,26 @@
 // سامانه جامع پروژه مهر — ناحیه ۴ شیراز
-// supabase.js — لایه دسترسی به Supabase  v6.3
+// supabase.js — لایه دسترسی به Supabase  v6.1
 
 // =============================================
 // Config — از window.APP_CONFIG یا fallback
 // =============================================
 const _cfg = (typeof window.APP_CONFIG !== 'undefined') ? window.APP_CONFIG : {
-  supabaseUrl:  'https://bomwdnzarrhysnhuagye.supabase.co',
-  supabaseAnon: 'sb_publishable_7PLpcKVd1SnOJ5-zzVPY3w_9DwZwAR7'
+  supabaseUrl:  'https://yyfhiekgmtaxobndjkpv.supabase.co',
+  supabaseAnon: 'sb_publishable_9vxsuC2lxcpVHa_DEW2jwg_ggzguG32'
 };
 
 const _supabase = supabase.createClient(_cfg.supabaseUrl, _cfg.supabaseAnon);
 
 // =============================================
-// Wrapper ایمن — با ثبت خودکار خطا در system_errors
+// Wrapper ایمن
 // =============================================
-
-// از داخل safeQuery دوباره صدا زده نمی‌شود تا حلقه‌ی بی‌نهایت رخ ندهد
-async function _logSystemError(context, err) {
-  // اگر خطا مربوط به خودِ جدول system_errors باشد، لاگ نکن (جلوگیری از حلقه)
-  if (context && context.startsWith('system_errors.')) return;
-  try {
-    const user = (typeof getCurrentUser === 'function') ? getCurrentUser() : null;
-    await _supabase.from('system_errors').insert({
-      context: context || null,
-      message: err?.message || String(err),
-      details: {
-        code:    err?.code    || null,
-        details: err?.details || null,
-        hint:    err?.hint    || null,
-        status:  err?.status  || null
-      },
-      user_id:   user?.id        || null,
-      user_name: user?.full_name || null,
-      url:       (typeof window !== 'undefined' && window.location) ? window.location.href : null
-    });
-  } catch (logErr) {
-    // اگر خود ثبت خطا هم fail شود، فقط در کنسول می‌ماند — هیچ throw‌ی به بیرون نمی‌رود
-    console.warn('[_logSystemError] failed to record error:', logErr?.message || logErr);
-  }
-}
-
-async function safeQuery(fn, context) {
+async function safeQuery(fn) {
   try {
     const { data, error } = await fn();
     if (error) throw error;
     return data;
   } catch (err) {
-    console.error('[safeQuery]', context || '', err);
-    // عدم انتظار (await نکردن) تا تأخیر در مسیر اصلی ایجاد نشود
-    _logSystemError(context, err);
+    console.error('[safeQuery]', err);
     throw err;
   }
 }
@@ -58,20 +30,20 @@ async function safeQuery(fn, context) {
 // =============================================
 const sb = {
   async getAll(table, order = 'id') {
-    return safeQuery(() => _supabase.from(table).select('*').order(order), `${table}.getAll`);
+    return safeQuery(() => _supabase.from(table).select('*').order(order));
   },
   async insert(table, data) {
-    return safeQuery(() => _supabase.from(table).insert(data).select(), `${table}.insert`);
+    return safeQuery(() => _supabase.from(table).insert(data).select());
   },
   async update(table, id, data) {
-    return safeQuery(() => _supabase.from(table).update(data).eq('id', id).select(), `${table}.update`);
+    return safeQuery(() => _supabase.from(table).update(data).eq('id', id).select());
   },
   async delete(table, id) {
-    return safeQuery(() => _supabase.from(table).delete().eq('id', id), `${table}.delete`);
+    return safeQuery(() => _supabase.from(table).delete().eq('id', id));
   },
   async upsert(table, data, conflict = 'id') {
     return safeQuery(() =>
-      _supabase.from(table).upsert(data, { onConflict: conflict }).select(), `${table}.upsert`
+      _supabase.from(table).upsert(data, { onConflict: conflict }).select()
     );
   }
 };
@@ -98,7 +70,7 @@ const sbActivities = {
   async setDone(id, done) { return sb.update('activities', id, { done, updated_at: new Date().toISOString() }); },
   async upsertAll(rows)   {
     return safeQuery(() =>
-      _supabase.from('activities').upsert(rows, { onConflict: 'id' }).select(), 'activities.upsertAll'
+      _supabase.from('activities').upsert(rows, { onConflict: 'id' }).select()
     );
   }
 };
@@ -119,7 +91,7 @@ const sbDocuments = {
 const sbSchoolFiles = {
   async getAll(schoolId) {
     return safeQuery(() =>
-      _supabase.from('school_files').select('*').eq('school_id', schoolId), 'school_files.getAll'
+      _supabase.from('school_files').select('*').eq('school_id', schoolId)
     );
   },
   async add(data)  { return sb.insert('school_files', data); },
@@ -141,7 +113,7 @@ const sbForms = {
   async getAll()        { return sb.getAll('forms', 'form_num'); },
   async save(num, data) {
     return safeQuery(() =>
-      _supabase.from('forms').upsert({ form_num: num, data }, { onConflict: 'form_num' }).select(), 'forms.save'
+      _supabase.from('forms').upsert({ form_num: num, data }, { onConflict: 'form_num' }).select()
     );
   }
 };
@@ -158,7 +130,7 @@ const sbGroupManagers = {
     return safeQuery(() =>
       _supabase.from('group_managers')
         .upsert({ group_num: groupNum, name }, { onConflict: 'group_num' })
-        .select(), 'group_managers.save'
+        .select()
     );
   }
 };
@@ -181,16 +153,8 @@ const sbLoginLog = {
   },
   async getAll() {
     return safeQuery(() =>
-      _supabase.from('login_log').select('*').order('login_time', { ascending: false }), 'login_log.getAll'
+      _supabase.from('login_log').select('*').order('login_time', { ascending: false })
     );
-  }
-};
-
-const sbSystemErrors = {
-  async getAll(limit = 50) {
-    return safeQuery(() =>
-      _supabase.from('system_errors').select('*').order('created_at', { ascending: false }).limit(limit)
-    , 'system_errors.getAll');
   }
 };
 

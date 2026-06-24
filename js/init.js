@@ -94,6 +94,14 @@ document.addEventListener('DOMContentLoaded', function() {
   var loginBtn = document.getElementById('loginBtn');
   if (loginBtn) loginBtn.addEventListener('click', login);
 
+  // دکمه‌های ثبت‌نام
+  var showRegisterBtn = document.getElementById('showRegisterBtn');
+  if (showRegisterBtn) showRegisterBtn.addEventListener('click', showRegisterForm);
+  var hideRegisterBtn = document.getElementById('hideRegisterBtn');
+  if (hideRegisterBtn) hideRegisterBtn.addEventListener('click', hideRegisterForm);
+  var registerSubmitBtn = document.getElementById('registerSubmitBtn');
+  if (registerSubmitBtn) registerSubmitBtn.addEventListener('click', registerRequest);
+
   // Enter key on login inputs
   var fullnameInput = document.getElementById("loginEmail");
   if (fullnameInput) fullnameInput.addEventListener('keydown', function(e) {
@@ -185,6 +193,17 @@ document.addEventListener('DOMContentLoaded', function() {
   var closeInspectorBtn = document.getElementById('closeInspectorBtn');
   if (closeInspectorBtn) closeInspectorBtn.addEventListener('click', closeInspectorPanel);
 
+  var inspectorLoginBtn = document.getElementById('inspectorLoginBtn');
+  if (inspectorLoginBtn) inspectorLoginBtn.addEventListener('click', checkInspectorPassword);
+
+  var inspectorCancelBtn = document.getElementById('inspectorCancelBtn');
+  if (inspectorCancelBtn) inspectorCancelBtn.addEventListener('click', cancelInspectorPanel);
+
+  var inspectorPasswordInput = document.getElementById('inspectorPassword');
+  if (inspectorPasswordInput) inspectorPasswordInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkInspectorPassword();
+  });
+
   /* ===== GROUP MANAGERS (data-gm inputs) ===== */
   document.querySelectorAll('input[data-gm]').forEach(function(el) {
     el.addEventListener('change', saveGroupManagers);
@@ -211,11 +230,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     var action = btn.dataset.action;
-    var id = parseInt(btn.dataset.id);
+    var rawId  = btn.dataset.id;                 // ممکن است UUID باشد (پروفایل‌ها)
+    var id     = /^\d+$/.test(rawId) ? parseInt(rawId) : rawId;
 
     switch (action) {
-      case 'editUser':        editUser(id); break;
-      case 'deleteUser':      deleteUser(id); break;
+      case 'editUser':        editUser(rawId); break;
+      case 'deleteUser':      deleteUser(rawId); break;
+      case 'approveUser':     approveUser(rawId); break;
+      case 'rejectUser':      rejectUser(rawId); break;
       case 'editMember':      editMember(id); break;
       case 'deleteMember':    deleteMember(id); break;
       case 'toggleActivity':  toggleActivity(id); break;
@@ -257,31 +279,18 @@ async function loadGroupManagers() {
 
 /* ===== REPORTS — آرایه در حافظه (بارگذاری در login) ===== */
 
-// نگاشت group_id به نام کارگروه برای نمایش (هم‌راستا با work_groups در دیتابیس)
-const workGroupNames = {
-  1:'ساماندهی نیروی انسانی', 2:'ثبت‌نام دانش‌آموزان', 3:'کیفیت‌بخشی آموزشی',
-  4:'تعمیر و تجهیز', 5:'فناوری و آموزش مجازی', 6:'سلامت و بهداشت',
-  7:'مشارکت مردمی', 8:'اطلاع‌رسانی و رسانه', 9:'فرهنگی و تربیتی', 10:'ایثار و مقاومت'
-};
-function groupLabelFor(r) {
-  return r.group || workGroupNames[r.group_id] || '';
-}
-
 function buildReportText() {
-  const groupSelect = document.getElementById('rptGroup');
-  const group_id = groupSelect.value ? parseInt(groupSelect.value, 10) : null;
-  const groupLabel = groupSelect.options[groupSelect.selectedIndex]?.text || '';
+  const group   = document.getElementById('rptGroup').value;
   const name    = document.getElementById('rptName').value.trim();
   const period  = document.getElementById('rptPeriod').value;
   const done    = document.getElementById('rptDone').value.trim();
   const issues  = document.getElementById('rptIssues').value.trim();
   const progress= document.getElementById('rptProgress').value;
   const now     = new Date().toLocaleDateString('fa-IR');
-  if (!group_id) { toastErr('کارگروه را انتخاب کنید'); return null; }
+  if (!group) { toastErr('کارگروه را انتخاب کنید'); return null; }
   if (!name)  { toastErr('نام مسئول را وارد کنید'); return null; }
   if (!done)  { toastErr('فعالیت‌های انجام‌شده را بنویسید'); return null; }
-  // group فقط برای نمایش فوری در UI نگه داشته می‌شود؛ آنچه ذخیره می‌شود group_id است
-  return { group_id, group: groupLabel, name, period, done, issues, progress, date: now };
+  return { group, name, period, done, issues, progress, date: now };
 }
 
 function previewReport() {
@@ -344,10 +353,9 @@ ${lines}${issuesLine}
 
 async function sendReportWhatsapp() {
   const r = buildReportText(); if (!r) return;
-  const { group, ...dbRow } = r; // group فقط نمایشی است، ستون واقعی group_id است
   try {
-    const [created] = await sbReports.add(dbRow);
-    reports.push({ ...created, group });
+    const [created] = await sbReports.add(r);
+    reports.push(created);
   } catch(e) { reports.push({ ...r, id: Date.now() }); }
   renderReportsList();
   const text = encodeURIComponent(buildReportPlainText(r));
@@ -356,10 +364,9 @@ async function sendReportWhatsapp() {
 
 async function printReport() {
   const r = buildReportText(); if (!r) return;
-  const { group, ...dbRow } = r; // group فقط نمایشی است، ستون واقعی group_id است
   try {
-    const [created] = await sbReports.add(dbRow);
-    reports.push({ ...created, group });
+    const [created] = await sbReports.add(r);
+    reports.push(created);
   } catch(e) { reports.push({ ...r, id: Date.now() }); }
   renderReportsList();
   const html = `<!DOCTYPE html><html dir="rtl" lang="fa">
@@ -387,7 +394,7 @@ function renderReportsList() {
   container.innerHTML = [...reports].reverse().map(r => `
     <div class="info-card" style="margin-bottom:10px;">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-        <strong>📋 ${escapeHtml(groupLabelFor(r))}</strong>
+        <strong>📋 ${escapeHtml(r.group || r.group_name || '')}</strong>
         <span style="font-size:12px;color:#888;">📅 ${escapeHtml(r.date || '')}</span>
       </div>
       <p style="font-size:13px;margin:4px 0;">👤 ${escapeHtml(r.name || '')} &nbsp;|&nbsp; 🗓 ${escapeHtml(r.period || '')} &nbsp;|&nbsp; 📊 ${escapeHtml(r.progress || '')}</p>
@@ -400,8 +407,7 @@ function renderReportsList() {
 
 function resendWhatsapp(id) {
   const r = reports.find(x => x.id === id); if (!r) return;
-  const withLabel = { ...r, group: groupLabelFor(r) };
-  window.open('https://wa.me/?text=' + encodeURIComponent(buildReportPlainText(withLabel)), '_blank');
+  window.open('https://wa.me/?text=' + encodeURIComponent(buildReportPlainText(r)), '_blank');
 }
 async function deleteReport(id) {
   const ok = await showConfirm('این گزارش حذف شود؟', 'حذف گزارش', '🗑️');
