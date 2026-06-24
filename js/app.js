@@ -39,60 +39,22 @@ function toggleDrawer() {
   if (isOpen) { closeDrawer(); } else {
     d.classList.add('open');
     setActiveTab('tab-more');
-    _showDrawerOverlay();
   }
 }
 function closeDrawer() {
   document.getElementById('moreDrawer').classList.remove('open');
-  _hideDrawerOverlay();
 }
 function drawerShow(sectionId) {
   closeDrawer();
   showSection(sectionId);
   setActiveTab('tab-more');
 }
-
-// پس‌زمینه تار برای بستن منو با لمس بیرون از آن
-function _showDrawerOverlay() {
-  let ov = document.getElementById('drawerOverlay');
-  if (!ov) {
-    ov = document.createElement('div');
-    ov.id = 'drawerOverlay';
-    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1095;';
-    ov.addEventListener('click', closeDrawer);
-    ov.addEventListener('touchstart', function(e){ e.preventDefault(); closeDrawer(); });
-    document.body.appendChild(ov);
-  }
-  ov.style.display = 'block';
-
-  // افزودن دکمه بستن واضح به بالای خود منو (اگر نبود)
-  const drawer = document.getElementById('moreDrawer');
-  if (drawer && !document.getElementById('drawerCloseBtn')) {
-    const x = document.createElement('button');
-    x.id = 'drawerCloseBtn';
-    x.innerHTML = '✕ بستن';
-    x.style.cssText = 'display:block;width:calc(100% - 16px);margin:8px;padding:12px;background:#1565C0;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;';
-    x.addEventListener('click', closeDrawer);
-    drawer.insertBefore(x, drawer.firstChild);
-  }
-}
-function _hideDrawerOverlay() {
-  const ov = document.getElementById('drawerOverlay');
-  if (ov) ov.style.display = 'none';
-}
-
-// هندلر دکمه‌های data-action (تأیید/رد کاربر)
 document.addEventListener('click', function(e) {
-  const el = e.target.closest('[data-action]');
-  if (!el) return;
-  const action = el.getAttribute('data-action');
-  const id     = el.getAttribute('data-id');
-  const fnMap = {
-    approveUser: (typeof approveUser === 'function') ? approveUser : null,
-    rejectUser:  (typeof rejectUser  === 'function') ? rejectUser  : null
-  };
-  const fn = fnMap[action];
-  if (typeof fn === 'function') { e.preventDefault(); fn(id); }
+  const drawer  = document.getElementById('moreDrawer');
+  const moreBtn = document.getElementById('tab-more');
+  if (drawer && !drawer.contains(e.target) && moreBtn && !moreBtn.contains(e.target)) {
+    closeDrawer();
+  }
 });
 
 function goHome() {
@@ -118,14 +80,4 @@ function showSection(id) {
 // بازیابی session هنگام بارگذاری صفحه
 window.addEventListener('load', async () => {
   await restoreSession();
-});
-
-/* ===== تضمین بستن drawer با گزینه‌ها و overlay ===== */
-document.addEventListener('DOMContentLoaded', function () {
-  const drawer = document.getElementById('moreDrawer');
-  if (drawer) {
-    drawer.querySelectorAll('.drawer-item').forEach(function (b) {
-      b.addEventListener('click', function () { setTimeout(closeDrawer, 10); });
-    });
-  }
 });

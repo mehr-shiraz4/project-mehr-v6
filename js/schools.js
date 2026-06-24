@@ -59,7 +59,7 @@ async function saveDocument() {
     const docData = {
       title,
       activity_id: activity,
-      file_type: type,
+      type,
       file_name: file.name,
       file_url:  publicUrl
     };
@@ -101,10 +101,10 @@ function renderDocuments() {
     const isImage  = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
     const preview  = isImage
       ? `<div style="margin:10px 0;"><img src="${escapeHtml(fileUrl)}" alt="${escapeHtml(fileName)}" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #ddd;"></div>`
-      : `<div style="font-size:28px;margin:6px 0;">${doc.file_type === 'PDF' ? '📕' : doc.file_type === 'Word' ? '📘' : doc.file_type === 'اکسل' ? '📗' : '📄'}</div>`;
+      : `<div style="font-size:28px;margin:6px 0;">${doc.type === 'PDF' ? '📕' : doc.type === 'Word' ? '📘' : doc.type === 'اکسل' ? '📗' : '📄'}</div>`;
     list.innerHTML += `<div class="info-card">
       <h4>📎 ${escapeHtml(doc.title)}</h4>
-      <p>فعالیت: ${escapeHtml(String(doc.activity_id||''))} &nbsp;|&nbsp; نوع: ${escapeHtml(doc.file_type||'')} &nbsp;|&nbsp; فایل: ${escapeHtml(fileName)}</p>
+      <p>فعالیت: ${escapeHtml(String(doc.activity_id||''))} &nbsp;|&nbsp; نوع: ${escapeHtml(doc.type||'')} &nbsp;|&nbsp; فایل: ${escapeHtml(fileName)}</p>
       ${preview}
       ${fileUrl ? `<a href="${escapeHtml(fileUrl)}" target="_blank" download="${escapeHtml(fileName)}" class="btn btn-white" style="padding:6px 12px;font-size:12px;text-decoration:none;">⬇️ دانلود</a>` : ''}
       <button class="btn btn-danger" style="padding:6px 12px;font-size:12px;" data-action="deleteDocument" data-id="${doc.id}">🗑️ حذف</button>

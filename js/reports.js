@@ -59,7 +59,7 @@ async function renderReportsList() {
   reports.forEach((r, i) => {
     t.innerHTML += `<tr>
       <td>${i+1}</td>
-      <td>${escapeHtml(r.group_name || r.group || '')}</td>
+      <td>${escapeHtml(groupLabelFor(r))}</td>
       <td>${escapeHtml(r.name || '')}</td>
       <td>${escapeHtml(r.period || '')}</td>
       <td>${escapeHtml(r.date || '')}</td>
