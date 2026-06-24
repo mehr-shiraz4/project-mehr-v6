@@ -58,11 +58,23 @@ function _showDrawerOverlay() {
   if (!ov) {
     ov = document.createElement('div');
     ov.id = 'drawerOverlay';
-    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1090;';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1095;';
     ov.addEventListener('click', closeDrawer);
+    ov.addEventListener('touchstart', function(e){ e.preventDefault(); closeDrawer(); });
     document.body.appendChild(ov);
   }
   ov.style.display = 'block';
+
+  // افزودن دکمه بستن واضح به بالای خود منو (اگر نبود)
+  const drawer = document.getElementById('moreDrawer');
+  if (drawer && !document.getElementById('drawerCloseBtn')) {
+    const x = document.createElement('button');
+    x.id = 'drawerCloseBtn';
+    x.innerHTML = '✕ بستن';
+    x.style.cssText = 'display:block;width:calc(100% - 16px);margin:8px;padding:12px;background:#1565C0;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;';
+    x.addEventListener('click', closeDrawer);
+    drawer.insertBefore(x, drawer.firstChild);
+  }
 }
 function _hideDrawerOverlay() {
   const ov = document.getElementById('drawerOverlay');

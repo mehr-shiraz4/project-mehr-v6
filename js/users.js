@@ -91,19 +91,11 @@ async function deleteUser(id) {
 function renderUsers() {
   const t = document.getElementById('usersTable'); if (!t) return;
   t.innerHTML = '';
-  const canApprove = _currentUser && ['admin','inspector'].includes(_currentUser.role);
   users.forEach((u, i) => {
     const displayName = escapeHtml(u.full_name || u.name || '');
-    const displayId   = escapeHtml(u.personnel_code || String(u.id).slice(0,8));
-    const statusBadge = u.approved
-      ? '<span class="badge badge-success">تأییدشده</span>'
-      : '<span class="badge badge-danger">در انتظار تأیید</span>';
-    const approveBtn = (!u.approved && canApprove)
-      ? `<button class="btn btn-gold" style="padding:5px 10px;font-size:12px;" data-action="approveUser" data-id="${u.id}">✔️ تأیید</button>`
-      : '';
-    t.innerHTML += `<tr><td>${i+1}</td><td>${displayName}</td><td>${displayId}</td><td>${escapeHtml(u.role)}</td><td>${statusBadge}</td>
+    const displayId   = escapeHtml(u.email || String(u.id).slice(0,8));
+    t.innerHTML += `<tr><td>${i+1}</td><td>${displayName}</td><td>${displayId}</td><td>${escapeHtml(u.role)}</td>
     <td>
-      ${approveBtn}
       <button class="btn btn-white" style="padding:5px 10px;font-size:12px;" data-action="editUser" data-id="${u.id}">✏️</button>
       <button class="btn btn-danger" style="padding:5px 10px;font-size:12px;" data-action="deleteUser" data-id="${u.id}">🗑️</button>
     </td></tr>`;
