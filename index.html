@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="پروژه مهر">
 <link id="pwa-icon" rel="apple-touch-icon" href="">
 
-<script src="js/pwa.js?v=10"></script>
+<script src="js/pwa.js"></script>
 
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css">
@@ -156,47 +156,26 @@
       <h1 style="font-size:20px;color:var(--dark);font-weight:bold;margin-bottom:4px;">سامانه جامع پروژه مهر v6.1</h1>
       <p style="font-size:13px;color:#7ca7d8;">ناحیه ۴ شیراز — سال تحصیلی ۱۴۰۵-۱۴۰۶</p>
     </div>
-    <!-- کارت ورود -->
     <div class="card" style="border-top:4px solid var(--primary);">
       <div style="text-align:center;margin-bottom:18px;">
         <span style="font-size:15px;font-weight:bold;color:var(--dark-mid);">ورود به سامانه</span>
       </div>
-      <label>کد پرسنلی</label>
-      <input id="loginCode" type="text" inputmode="numeric" placeholder="کد پرسنلی خود را وارد کنید" data-next="personnelCode" autocomplete="username">
+      <label>ایمیل</label>
+      <input id="loginEmail" type="email" placeholder="ایمیل خود را وارد کنید" data-next="personnelCode" autocomplete="email">
       <label>رمز عبور</label>
       <input id="personnelCode" type="password" placeholder="رمز عبور" data-enter-login="true" autocomplete="current-password">
+      <label>سمت</label>
+      <select id="role">
+        <option>مدیر مدرسه</option>
+        <option>معاون آموزشی</option>
+        <option>معاون اجرایی</option>
+        <option>معاون پرورشی</option>
+        <option>مسئول کارگروه</option>
+        <option>عضو کارگروه</option>
+        <option>ناظر منطقه</option>
+      </select>
       <button class="btn btn-gold" id="loginBtn" style="width:100%;justify-content:center;margin:4px 0 0;padding:13px;font-size:15px;">
         ورود به سامانه ←
-      </button>
-      <button class="btn btn-white" id="showRegisterBtn" style="width:100%;justify-content:center;margin:10px 0 0;padding:12px;font-size:14px;">
-        ثبت‌نام کاربر جدید
-      </button>
-    </div>
-
-    <!-- فرم ثبت‌نام (مخفی تا کلیک شود) -->
-    <div class="card" id="registerForm" style="border-top:4px solid var(--gold);display:none;">
-      <div style="text-align:center;margin-bottom:18px;">
-        <span style="font-size:15px;font-weight:bold;color:var(--dark-mid);">ثبت‌نام کاربر جدید</span>
-      </div>
-      <label>نام و نام خانوادگی</label>
-      <input id="regName" type="text" placeholder="نام و نام خانوادگی" autocomplete="name">
-      <label>کد پرسنلی</label>
-      <input id="regCode" type="text" inputmode="numeric" placeholder="کد پرسنلی">
-      <label>نام مدرسه</label>
-      <input id="regSchool" type="text" placeholder="نام مدرسه">
-      <label>سمت</label>
-      <select id="regRole">
-        <option value="manager">مدیر مدرسه</option>
-        <option value="teacher">معاون / عضو کارگروه</option>
-        <option value="inspector">ناظر منطقه</option>
-      </select>
-      <label>رمز عبور (حداقل ۶ کاراکتر)</label>
-      <input id="regPassword" type="password" placeholder="رمز عبور" autocomplete="new-password">
-      <button class="btn btn-gold" id="registerSubmitBtn" style="width:100%;justify-content:center;margin:4px 0 0;padding:13px;font-size:15px;">
-        ارسال درخواست
-      </button>
-      <button class="btn btn-white" id="hideRegisterBtn" style="width:100%;justify-content:center;margin:10px 0 0;padding:12px;font-size:14px;">
-        بازگشت به ورود
       </button>
     </div>
     <p style="text-align:center;font-size:11px;color:#aaa;margin-top:12px;">معاونت پرورشی و تربیت بدنی — آموزش و پرورش ناحیه ۴ شیراز</p>
@@ -310,16 +289,16 @@
       <label>کارگروه</label>
       <select id="rptGroup">
         <option value="">-- انتخاب کارگروه --</option>
-        <option>ساماندهی نیروی انسانی</option>
-        <option>ثبت‌نام دانش‌آموزان</option>
-        <option>کیفیت‌بخشی آموزشی</option>
-        <option>تعمیر و تجهیز</option>
-        <option>فناوری و آموزش مجازی</option>
-        <option>سلامت و بهداشت</option>
-        <option>مشارکت مردمی</option>
-        <option>اطلاع‌رسانی و رسانه</option>
-        <option>فرهنگی و تربیتی</option>
-        <option>ایثار و مقاومت</option>
+        <option value="1">ساماندهی نیروی انسانی</option>
+        <option value="2">ثبت‌نام دانش‌آموزان</option>
+        <option value="3">کیفیت‌بخشی آموزشی</option>
+        <option value="4">تعمیر و تجهیز</option>
+        <option value="5">فناوری و آموزش مجازی</option>
+        <option value="6">سلامت و بهداشت</option>
+        <option value="7">مشارکت مردمی</option>
+        <option value="8">اطلاع‌رسانی و رسانه</option>
+        <option value="9">فرهنگی و تربیتی</option>
+        <option value="10">ایثار و مقاومت</option>
       </select>
 
       <label>نام مسئول گزارش‌دهنده</label>
@@ -668,12 +647,6 @@
         </div>
       </div>
 
-      <!-- کاربران در انتظار تأیید -->
-      <h4 style="color:var(--gold);margin-bottom:10px;">⏳ درخواست‌های ثبت‌نام در انتظار تأیید</h4>
-      <div id="pendingUsersList" style="margin-bottom:18px;display:flex;flex-direction:column;gap:8px;"></div>
-
-      <hr>
-
       <!-- مدارس ثبت‌شده -->
       <h4 style="color:var(--gold);margin-bottom:10px;">🏫 مدارس ثبت‌شده در سامانه</h4>
       <div class="table-scroll">
@@ -701,28 +674,22 @@
       </div>
       <p style="font-size:12px;color:#aaa;margin-top:10px;">📌 این گزارش فقط روی همین دستگاه/مرورگر ذخیره می‌شود.</p>
 
+      <hr>
+
+      <!-- لاگ خطاهای سامانه -->
+      <h4 style="color:var(--gold);margin:16px 0 10px;">⚠️ آخرین خطاهای ثبت‌شده سامانه</h4>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>زمان</th><th>محل خطا</th><th>پیام</th><th>کاربر</th></tr></thead>
+        <tbody id="insErrorsTable"></tbody>
+      </table>
+      </div>
+
       <button class="btn btn-white" id="closeInspectorBtn" style="margin-top:16px;">⬅️ بازگشت به داشبورد</button>
     </div>
 
   </div><!-- /dashboard -->
 
-  <!-- ===== INSPECTOR PASSWORD MODAL ===== -->
-  <div id="inspectorModal" style="display:none;position:fixed;inset:0;background:rgba(13,36,68,.7);z-index:2000;align-items:center;justify-content:center;padding:16px;">
-    <div class="card" style="max-width:360px;width:100%;margin:0;border-top:4px solid var(--primary);">
-      <div style="text-align:center;margin-bottom:14px;">
-        <div style="font-size:40px;margin-bottom:6px;">🔒</div>
-        <div style="font-weight:bold;color:var(--dark-mid);">ورود کارشناس اداره</div>
-        <div style="font-size:12px;color:#999;margin-top:4px;">برای مشاهده‌ی این پنل رمز عبور را وارد کنید</div>
-      </div>
-      <label>رمز عبور</label>
-      <input id="inspectorPassword" type="password" placeholder="رمز عبور را وارد کنید" data-enter-inspector="true">
-      <div id="inspectorPassError" style="display:none;color:var(--danger);font-size:12px;margin:-8px 0 12px;">رمز عبور اشتباه است.</div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-gold" id="inspectorLoginBtn" style="flex:1;justify-content:center;">ورود</button>
-        <button class="btn btn-white" id="inspectorCancelBtn" style="flex:1;justify-content:center;">انصراف</button>
-      </div>
-    </div>
-  </div>
 </div><!-- /container -->
 
 <!-- ===== FOOTER ===== -->
@@ -738,17 +705,17 @@
   تنظیم شده توسط کانال شهر بازی دبستان
 </footer>
 
-<script src="js/supabase.js?v=10"></script>
-<script src="js/api.js?v=10"></script>
-<script src="js/ui.js?v=10"></script>
-<script src="js/app.js?v=10"></script>
-<script src="js/auth.js?v=10"></script>
-<script src="js/users.js?v=10"></script>
-<script src="js/activities.js?v=10"></script>
-<script src="js/schools.js?v=10"></script>
-<script src="js/forms.js?v=10"></script>
-<script src="js/reports.js?v=10"></script>
-<script src="js/backup.js?v=10"></script>
+<script src="js/supabase.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/users.js"></script>
+<script src="js/activities.js"></script>
+<script src="js/schools.js"></script>
+<script src="js/forms.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/backup.js"></script>
 
 <!-- ===== PWA INSTALL BANNER ===== -->
 <div id="pwaInstallBar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#0D2444;color:#fff;padding:12px 18px;z-index:9999;align-items:center;justify-content:space-between;gap:12px;border-top:3px solid #1565C0;font-size:13px;direction:rtl;">
@@ -759,7 +726,7 @@
   </div>
 </div>
 
-<script src="js/init.js?v=10"></script>
+<script src="js/init.js"></script>
 
 </body>
 </html>
