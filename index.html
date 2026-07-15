@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سامانه پروژه مهر — ناحیه ۴ شیراز</title>
+<meta name="theme-color" content="#0B7A4B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="پروژه مهر">
+<link id="pwa-icon" rel="apple-touch-icon" href="">
+
+<script src="js/pwa.js?v=11"></script>
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== STICKY NAVBAR ===== -->
+<nav class="navbar" id="mainNav" style="display:none;">
+  <div class="navbar-brand">
+    <span>🏫</span> پروژه مهر ۱۴۰۵
+  </div>
+
+  <div class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+
+  <ul class="nav-menu" id="navMenu">
+
+    <li class="nav-item">
+      <button class="nav-link" id="navBtnHome">🏠 داشبورد</button>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link">👥 کاربران <span class="arrow">▼</span></button>
+      <div class="dropdown">
+        <a data-section="usersSection"><span class="ico">👤</span> مدیریت کاربران</a>
+        <a data-section="membersSection"><span class="ico">🤝</span> اعضای کارگروه</a>
+        <a data-section="groupsSection"><span class="ico">📋</span> کارگروه‌ها</a>
+      </div>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link">📌 فعالیت‌ها <span class="arrow">▼</span></button>
+      <div class="dropdown">
+        <a data-section="activitiesSection"><span class="ico">✅</span> چک‌لیست ۸۴ فعالیت</a>
+        <a data-section="documentsSection"><span class="ico">📎</span> مستندات</a>
+        <a data-section="meetingsSection"><span class="ico">📝</span> صورتجلسات</a>
+      </div>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link">🏫 مدارس <span class="arrow">▼</span></button>
+      <div class="dropdown">
+        <a data-section="schoolsSection"><span class="ico">🏫</span> ثبت مدارس</a>
+        <a data-section="rankingSection"><span class="ico">🏆</span> رتبه‌بندی</a>
+        <a data-section="observerSection"><span class="ico">🗂️</span> کارتابل ناظر منطقه</a>
+      </div>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link">📊 گزارش‌ها <span class="arrow">▼</span></button>
+      <div class="dropdown">
+        <a data-section="reportsSection"><span class="ico">📊</span> گزارش نهایی</a>
+        <a data-section="reportSection"><span class="ico">📤</span> ارسال گزارش</a>
+        <a data-section="formsSection"><span class="ico">📄</span> نمون‌برگ‌های رسمی</a>
+        <a data-section="chartSection"><span class="ico">📈</span> نمودار آماری</a>
+        <div class="dropdown-divider"></div>
+        <a data-section="backupSection"><span class="ico">💾</span> پشتیبان‌گیری</a>
+      </div>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link" id="openGuideBtn">❓ راهنما</button>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link">🏛️ اداره <span class="arrow">▼</span></button>
+      <div class="dropdown">
+        <a data-section="officeSection"><span class="ico">📋</span> وظایف اداره پیش از مهر</a>
+        <a data-section="observerSection"><span class="ico">🗂️</span> کارتابل ناظر منطقه</a>
+        <a data-section="usersSection"><span class="ico">👤</span> ادمین — تأیید کاربران</a>
+      </div>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link" id="navBtnInspector">🗂️ کارتابل ناظر</button>
+    </li>
+
+    <li class="nav-item">
+      <button class="btn-logout" id="navBtnLogout">🚪 خروج</button>
+    </li>
+
+  </ul>
+</nav>
+
+<!-- ===== BOTTOM TAB BAR (mobile) ===== -->
+<div class="tab-bar" id="tabBar" style="display:none;">
+  <div class="tab-bar-inner">
+    <button class="tab-btn active" id="tab-home">
+      <span class="tab-ico">🏠</span>
+      <span>داشبورد</span>
+    </button>
+    <button class="tab-btn" id="tab-activities">
+      <span class="tab-ico">✅</span>
+      <span>فعالیت‌ها</span>
+    </button>
+    <button class="tab-btn" id="tab-report">
+      <span class="tab-ico">📤</span>
+      <span>گزارش</span>
+    </button>
+    <button class="tab-btn" id="tab-schools">
+      <span class="tab-ico">🏫</span>
+      <span>مدارس</span>
+    </button>
+    <button class="tab-btn" id="tab-more">
+      <span class="tab-ico">☰</span>
+      <span>بیشتر</span>
+    </button>
+  </div>
+</div>
+
+<!-- ===== MORE DRAWER ===== -->
+<div class="more-drawer" id="moreDrawer">
+  <div class="drawer-section-title">کاربران</div>
+  <button class="drawer-item" id="drawer-users"><span class="d-ico">👤</span> مدیریت کاربران</button>
+  <button class="drawer-item" id="drawer-members"><span class="d-ico">🤝</span> اعضای کارگروه</button>
+  <button class="drawer-item" id="drawer-groups"><span class="d-ico">📋</span> کارگروه‌ها</button>
+
+  <div class="drawer-section-title">فعالیت‌ها</div>
+  <button class="drawer-item" id="drawer-documents"><span class="d-ico">📎</span> مستندات</button>
+  <button class="drawer-item" id="drawer-meetings"><span class="d-ico">📝</span> صورتجلسات</button>
+
+  <div class="drawer-section-title">گزارش‌ها</div>
+  <button class="drawer-item" id="drawer-reports"><span class="d-ico">📊</span> گزارش نهایی</button>
+  <button class="drawer-item" id="drawer-forms"><span class="d-ico">📄</span> نمون‌برگ‌های رسمی</button>
+  <button class="drawer-item" id="drawer-chart"><span class="d-ico">📈</span> نمودار آماری</button>
+  <button class="drawer-item" id="drawer-ranking"><span class="d-ico">🏆</span> رتبه‌بندی مدارس</button>
+  <button class="drawer-item" id="drawer-office"><span class="d-ico">🏛️</span> وظایف اداره</button>
+  <button class="drawer-item" id="drawer-observer"><span class="d-ico">🗂️</span> کارتابل ناظر</button>
+  <button class="drawer-item" id="drawer-backup"><span class="d-ico">💾</span> پشتیبان‌گیری</button>
+
+  <div class="drawer-section-title">حساب کاربری</div>
+  <button class="drawer-item" id="drawer-inspector"><span class="d-ico">🗂️</span> کارتابل ناظر</button>
+  <button class="drawer-item" id="drawer-logout" style="color:#ff9090;">
+    <span class="d-ico">🚪</span> خروج از سامانه
+  </button>
+</div>
+
+<!-- ===== BANNER (فقط قبل از ورود مخفی می‌شود توسط JS؛ در پورتال جدید داخل loginPage است) ===== -->
+<div class="site-banner" id="siteBanner" style="display:none;"></div>
+
+<div class="container" style="padding:0;max-width:none;">
+
+  <!-- ======== LOGIN PORTAL (مای‌مدیو استایل) ======== -->
+  <div id="loginPage" class="portal-shell">
+    <div class="portal-topbar">
+      <div class="portal-brand">
+        <div class="portal-logo">🏫</div>
+        <div>
+          <h1>سامانه پروژه مهر</h1>
+          <p>پنجره واحد آماده‌سازی اول مهر — ناحیه ۴ شیراز</p>
+        </div>
+      </div>
+      <div class="portal-badge">سال تحصیلی ۱۴۰۵-۱۴۰۶</div>
+    </div>
+
+    <div class="portal-main">
+      <div class="portal-hero">
+        <h2>ورود به سامانه</h2>
+        <p>ابتدا نقش خود را انتخاب کنید؛ سپس با کد پرسنلی وارد شوید. (مشابه تفکیک نقش در مای‌مدیو)</p>
+      </div>
+
+      <div class="role-grid" id="loginRoleGrid">
+        <button type="button" class="role-tile active" data-login-role="manager">
+          <span class="rt-ico">🏫</span>
+          <div class="rt-title">مدیر / معاون مدرسه</div>
+          <div class="rt-desc">چک‌لیست اول مهر، مستندات و گزارش مدرسه</div>
+        </button>
+        <button type="button" class="role-tile" data-login-role="inspector">
+          <span class="rt-ico">🗂️</span>
+          <div class="rt-title">ناظر منطقه</div>
+          <div class="rt-desc">کارتابل مستندات مدارس و ارزیابی بازدید</div>
+        </button>
+        <button type="button" class="role-tile" data-login-role="admin">
+          <span class="rt-ico">🛡️</span>
+          <div class="rt-title">ادمین سایت</div>
+          <div class="rt-desc">تأیید کاربران و مدیریت دسترسی‌ها</div>
+        </button>
+      </div>
+
+      <div class="portal-card" id="loginCard">
+        <div style="text-align:center;">
+          <span class="selected-role-pill" id="selectedRolePill">نقش انتخابی: مدیر / معاون مدرسه</span>
+        </div>
+        <h3>احراز هویت با کد پرسنلی</h3>
+        <label>کد پرسنلی</label>
+        <input id="loginCode" type="text" inputmode="numeric" placeholder="کد پرسنلی خود را وارد کنید" autocomplete="username">
+        <label>رمز عبور</label>
+        <input id="personnelCode" type="password" placeholder="رمز عبور" data-enter-login="true" autocomplete="current-password">
+        <input type="hidden" id="loginRoleHint" value="manager">
+        <button class="btn btn-gold" id="loginBtn" style="width:100%;justify-content:center;margin:8px 0 0;padding:13px;font-size:15px;">
+          ورود به سامانه ←
+        </button>
+        <button class="btn btn-white" id="showRegisterBtn" style="width:100%;justify-content:center;margin:10px 0 0;padding:12px;font-size:14px;">
+          ثبت‌نام کاربر جدید
+        </button>
+      </div>
+
+      <!-- فرم ثبت‌نام -->
+      <div class="portal-card" id="registerForm" style="display:none;margin-top:16px;">
+        <h3>ثبت‌نام کاربر جدید</h3>
+        <label>نام و نام خانوادگی</label>
+        <input id="regName" type="text" placeholder="نام و نام خانوادگی" autocomplete="name">
+        <label>کد پرسنلی</label>
+        <input id="regCode" type="text" inputmode="numeric" placeholder="کد پرسنلی">
+        <label>نام مدرسه / واحد</label>
+        <input id="regSchool" type="text" placeholder="نام مدرسه">
+        <label>نقش</label>
+        <select id="regRole">
+          <option value="manager">مدیر مدرسه</option>
+          <option value="teacher">معاون / عضو کارگروه</option>
+          <option value="inspector">ناظر منطقه</option>
+        </select>
+        <label>مقطع مدرسه</label>
+        <div class="level-grid" id="regLevelGrid">
+          <button type="button" class="level-chip active" data-level="ابتدایی">ابتدایی</button>
+          <button type="button" class="level-chip" data-level="متوسطه اول">متوسطه اول</button>
+          <button type="button" class="level-chip" data-level="متوسطه دوم">متوسطه دوم</button>
+        </div>
+        <input type="hidden" id="regLevel" value="ابتدایی">
+        <label>رمز عبور (حداقل ۶ کاراکتر)</label>
+        <input id="regPassword" type="password" placeholder="رمز عبور" autocomplete="new-password">
+        <button class="btn btn-gold" id="registerSubmitBtn" style="width:100%;justify-content:center;margin:4px 0 0;padding:13px;font-size:15px;">
+          ارسال درخواست
+        </button>
+        <button class="btn btn-white" id="hideRegisterBtn" style="width:100%;justify-content:center;margin:10px 0 0;padding:12px;font-size:14px;">
+          بازگشت به ورود
+        </button>
+      </div>
+
+      <p style="text-align:center;font-size:11px;color:#7A9186;margin-top:18px;">
+        وزارت آموزش و پرورش — مدیریت آموزش و پرورش ناحیه ۴ شیراز
+      </p>
+    </div>
+  </div>
+
+  <!-- ======== DASHBOARD ======== -->
+  <div id="dashboard" class="hidden" style="max-width:1100px;margin:0 auto;padding:16px;">
+    <div class="session-bar visible" id="sessionBar">
+      <div class="session-user">
+        <b><span id="dashGreeting">سلام،</span> <span id="dashUserName">—</span></b>
+        <span id="dashSchoolLine">مدرسه: —</span>
+      </div>
+      <div class="session-right">
+        <div class="session-tags">
+          <span class="tag-role" id="dashUserRole">—</span>
+          <span class="tag-level" id="dashUserLevel">مقطع: —</span>
+        </div>
+        <div class="level-switch" id="levelSwitchBox" title="تغییر مقطع فعال (مثل مای‌مدیو)">
+          <span class="level-switch-label">سطح فعال:</span>
+          <button type="button" class="level-chip mini" data-active-level="ابتدایی">ابتدایی</button>
+          <button type="button" class="level-chip mini" data-active-level="متوسطه اول">متوسطه اول</button>
+          <button type="button" class="level-chip mini" data-active-level="متوسطه دوم">متوسطه دوم</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- پیشرفت کلی -->
+    <div class="card" style="margin-bottom:18px;background:linear-gradient(135deg,#065A38,#0B7A4B 55%,#0D9488);color:#fff;border:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <span style="font-size:13px;opacity:.9;">پیشرفت کلی پروژه مهر</span>
+        <span style="font-size:20px;font-weight:800;" id="dashPercent">۰٪</span>
+      </div>
+      <div style="background:rgba(255,255,255,.22);border-radius:20px;height:10px;overflow:hidden;">
+        <div id="dashBar" style="width:0%;height:100%;background:#fff;border-radius:20px;transition:width .6s ease;"></div>
+      </div>
+    </div>
+
+    <!-- آمار سریع -->
+    <div class="stats-grid" style="margin-bottom:18px;">
+      <div class="stat-box">
+        <div class="stat-ico">✅</div>
+        <h3>فعالیت انجام‌شده</h3>
+        <span id="dashDone">۰</span>
+        <div style="font-size:11px;color:#888;margin-top:2px;">از ۸۴ فعالیت</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-ico">⭐</div>
+        <h3>امتیاز پروژه</h3>
+        <span id="dashScore">۰</span>
+      </div>
+      <div class="stat-box">
+        <div class="stat-ico">🏫</div>
+        <h3>مدارس ثبت‌شده</h3>
+        <span id="dashSchools">۰</span>
+      </div>
+      <div class="stat-box">
+        <div class="stat-ico">🏛️</div>
+        <h3>آمادگی اداره</h3>
+        <span id="dashOfficePct">۰%</span>
+      </div>
+      <div class="stat-box">
+        <div class="stat-ico">📤</div>
+        <h3>گزارش ارسالی</h3>
+        <span id="dashReports">۰</span>
+      </div>
+    </div>
+
+    <!-- وضعیت و اقدام بعدی -->
+    <div class="card" style="margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <span style="font-weight:bold;color:var(--dark-mid);">🎯 وضعیت بازگشایی</span>
+        <span id="schoolStatus" class="badge badge-danger">نیازمند پیگیری</span>
+      </div>
+      <!-- اقدام‌های پیشنهادی -->
+      <div id="dashActions"></div>
+    </div>
+
+    <!-- دسترسی سریع -->
+    <div class="card" style="margin-bottom:0;">
+      <div style="font-weight:bold;color:var(--dark-mid);margin-bottom:12px;">⚡ دسترسی سریع</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <button type="button" data-section="officeSection" class="quick-btn"><span style="font-size:24px;">🏛️</span>اداره</button>
+        <button type="button" data-section="activitiesSection" class="quick-btn"><span style="font-size:24px;">✅</span>چک‌لیست مدرسه</button>
+        <button type="button" data-section="reportSection" class="quick-btn"><span style="font-size:24px;">📤</span>ارسال گزارش</button>
+        <button type="button" data-section="documentsSection" class="quick-btn"><span style="font-size:24px;">📎</span>مستندات</button>
+        <button type="button" data-section="observerSection" class="quick-btn"><span style="font-size:24px;">🗂️</span>کارتابل ناظر</button>
+        <button type="button" data-section="meetingsSection" class="quick-btn"><span style="font-size:24px;">📝</span>صورتجلسات</button>
+      </div>
+    </div>
+
+    <!-- ======== OFFICE (اداره پیش از مهر) ======== -->
+    <div id="officeSection" class="card module-section">
+      <div class="card-title"><span class="ico">🏛️</span> سامانه پروژه مهر — وظایف اداره پیش از اول مهر</div>
+      <div class="notice-box">
+        بر اساس دستورالعمل ملی ۱۴۰۶-۱۴۰۵: رئیس ستاد ناحیه‌ای = مدیر آموزش و پرورش ناحیه؛
+        دبیرخانه در <b>ارزیابی عملکرد</b> مستقر است. شعار: «حماسه همدلی؛ برای ایران، برای مدرسه».
+        این بخش مخصوص <b>اداره</b> است (نه چک‌لیست مدرسه).
+      </div>
+      <div class="stats-grid" style="margin-bottom:16px;">
+        <div class="stat-box"><div class="stat-ico">✅</div><h3>انجام‌شده</h3><span id="officeDoneCount">0</span></div>
+        <div class="stat-box"><div class="stat-ico">📋</div><h3>کل اقدامات اداره</h3><span id="officeTotalCount">20</span></div>
+        <div class="stat-box"><div class="stat-ico">📈</div><h3>درصد آمادگی اداره</h3><span id="officePercent">0%</span></div>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="officeBar" style="width:0%"></div></div>
+      <hr>
+      <h4 style="color:var(--gold);margin:14px 0 10px;">۸ کارگروه تخصصی ملی</h4>
+      <div id="officialWorkgroups"></div>
+      <hr>
+      <h4 style="color:var(--gold);margin:14px 0 10px;">چک‌لیست اقدامات اداره</h4>
+      <div id="officeChecklistBox"></div>
+    </div>
+
+    <!-- ======== GROUPS ======== -->
+    <div id="groupsSection" class="card module-section">
+      <div class="card-title"><span class="ico">📋</span> ۸ کارگروه تخصصی پروژه مهر (ناحیه / مدرسه)</div>
+      <div class="notice-box">مطابق ساختار ملی ۱۴۰۵ — مسئول هر کارگروه را ثبت کنید.</div>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>ردیف</th><th>عنوان کارگروه</th><th>مسئول</th></tr></thead>
+        <tbody id="groupsTable">
+          <tr><td>1</td><td>تأمین، تعمیر و تجهیز فضاهای آموزشی</td><td><input id="gm1" placeholder="نام مسئول" style="margin:0;padding:6px;" data-gm="true"></td></tr>
+          <tr><td>2</td><td>ساماندهی منابع انسانی</td><td><input id="gm2" placeholder="نام مسئول" style="margin:0;padding:6px;" data-gm="true"></td></tr>
+          <tr><td>3</td><td>توسعه کمی و کیفی کودکستان‌ها</td><td><input id="gm3" placeholder="نام مسئول" style="margin:0;padding:6px;" data-gm="true"></td></tr>
+          <tr><td>4</td><td>کیفیت‌بخشی آموزشی ابتدایی</td><td><input id="gm4" placeholder="نام مسئول" style="margin:0;padding:6px;" data-gm="true"></td></tr>
+          <tr><td>5</td><td>کیفیت‌بخشی آموزشی متوسطه</td><td><input id="gm5" placeholder="نام مسئول" style="margin:0;padding:6px;" data-gm="true"></td></tr>
+          <tr><td>6</td><td>کیفیت‌بخشی تربیتی و تندرستی</td><td><input id="gm6" placeholder="نام مسئول" style="margin:0;padding:6px;" data-gm="true"></td></tr>
+          <tr><td>7</td><td>اطلاع‌رسانی و رسانه</td><td><input id="gm7" placeholder="نام مسئول" style="margin:0;padding:6px;" data-gm="true"></td></tr>
+          <tr><td>8</td><td>ترویج فرهنگ ایثار، شهادت و مقاومت</td><td><input id="gm8" placeholder="نام مسئول" style="margin:0;padding:6px;" data-gm="true"></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p style="font-size:12px;color:#aaa;margin-top:6px;">نام مسئولان بعد از هر تغییر ذخیره می‌شود</p>
+    </div>
+
+    <!-- ======== REPORT SUBMISSION ======== -->
+    <div id="reportSection" class="card module-section">
+      <div class="card-title"><span class="ico">📤</span> ارسال گزارش کارگروه</div>
+      <div class="notice-box">
+        پس از ثبت، گزارش <b>مستقیماً به کارتابل ناظر منطقه</b> می‌رود تا بررسی و تأیید شود.
+      </div>
+      <label>کارگروه</label>
+      <select id="rptGroup">
+        <option value="">-- انتخاب کارگروه --</option>
+        <option>تأمین، تعمیر و تجهیز فضاهای آموزشی</option>
+        <option>ساماندهی منابع انسانی</option>
+        <option>توسعه کمی و کیفی کودکستان‌ها</option>
+        <option>کیفیت‌بخشی آموزشی ابتدایی</option>
+        <option>کیفیت‌بخشی آموزشی متوسطه</option>
+        <option>کیفیت‌بخشی تربیتی و تندرستی</option>
+        <option>اطلاع‌رسانی و رسانه</option>
+        <option>ترویج فرهنگ ایثار، شهادت و مقاومت</option>
+      </select>
+
+      <label>نام مسئول گزارش‌دهنده</label>
+      <input id="rptName" type="text" placeholder="نام و نام خانوادگی">
+
+      <label>دوره گزارش</label>
+      <select id="rptPeriod">
+        <option>دوره اول (۱–۱۵ تیر)</option>
+        <option>دوره دوم (۱۶–۳۱ تیر)</option>
+        <option>دوره سوم (۱–۱۵ مرداد)</option>
+        <option>دوره چهارم (۱۶–۳۱ مرداد)</option>
+        <option>دوره پنجم (۱–۱۵ شهریور)</option>
+        <option>دوره ششم (۱۶–۳۱ شهریور)</option>
+      </select>
+
+      <label>فعالیت‌های انجام‌شده در این دوره</label>
+      <textarea id="rptDone" rows="4" placeholder="هر فعالیت را در یک خط بنویسید..." style="width:100%;padding:10px;border:1px solid var(--gray-line);border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;"></textarea>
+
+      <label>مشکلات و موانع (اختیاری)</label>
+      <textarea id="rptIssues" rows="2" placeholder="مشکلات پیش‌آمده..." style="width:100%;padding:10px;border:1px solid var(--gray-line);border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;"></textarea>
+
+      <label>درصد پیشرفت کارگروه</label>
+      <select id="rptProgress">
+        <option>۰–۲۰٪ (شروع نشده)</option>
+        <option>۲۰–۴۰٪ (در ابتدای کار)</option>
+        <option>۴۰–۶۰٪ (در حال اجرا)</option>
+        <option>۶۰–۸۰٪ (پیشرفت خوب)</option>
+        <option>۸۰–۱۰۰٪ (تکمیل شده)</option>
+      </select>
+
+      <label>بارگذاری تصویر مستند (اختیاری، حداکثر ۴ مگ)</label>
+      <input id="rptImage" type="file" accept="image/*">
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+        <button class="btn btn-gold" id="sendToObserverBtn">🗂️ ارسال به کارتابل ناظر</button>
+        <button class="btn btn-white" id="previewReportBtn">👁️ پیش‌نمایش</button>
+        <button class="btn btn-white" id="printReportBtn">🖨️ چاپ PDF</button>
+      </div>
+
+      <!-- Preview area -->
+      <div id="rptPreviewBox" style="display:none;margin-top:18px;border:2px solid var(--primary-border);border-radius:12px;padding:16px;background:var(--off-white);">
+        <div id="rptPreviewContent"></div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn btn-gold" id="sendToObserverBtn2">🗂️ ارسال به کارتابل ناظر</button>
+          <button class="btn btn-white" id="printReportBtn2">🖨️ چاپ</button>
+        </div>
+      </div>
+
+      <hr style="margin:20px 0;">
+      <div class="card-title" style="font-size:14px;">📂 گزارش‌های ثبت‌شده</div>
+      <div id="reportsList"><div class="empty-state"><div class="empty-ico">📭</div><div class="empty-text">هنوز گزارشی ثبت نشده است.</div></div></div>
+    </div>
+
+    <!-- ======== USERS ======== -->
+    <div id="usersSection" class="card module-section">
+      <div class="card-title"><span class="ico">👤</span> ادمین سایت — مدیریت و تأیید کاربران</div>
+      <div class="notice-box">
+        <strong>وظیفه ادمین:</strong> تأیید یا رد درخواست‌های ثبت‌نام. نقش کاربران را از اینجا مدیریت کنید.
+        ناظر منطقه مسئول کارتابل مستندات است، نه تأیید حساب.
+      </div>
+      <h4 style="color:var(--gold);margin-bottom:10px;">⏳ درخواست‌های در انتظار تأیید</h4>
+      <div id="pendingUsersList" style="margin-bottom:18px;display:flex;flex-direction:column;gap:8px;"></div>
+      <hr>
+      <label>نام</label>
+      <input id="userName" type="text" placeholder="نام کامل">
+      <label>کد / شناسه</label>
+      <input id="userCode" type="text" placeholder="کد پرسنلی یا ایمیل">
+      <label>نقش سیستم</label>
+      <select id="userRole">
+        <option value="manager">مدیر مدرسه</option>
+        <option value="teacher">معاون / عضو کارگروه</option>
+        <option value="inspector">ناظر منطقه</option>
+        <option value="admin">ادمین سایت</option>
+      </select>
+      <button class="btn btn-gold" id="addUserBtn">💾 ذخیره نقش کاربر</button>
+      <hr>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>ردیف</th><th>نام</th><th>شناسه</th><th>نقش</th><th>عملیات</th></tr></thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- ======== MEMBERS ======== -->
+    <div id="membersSection" class="card module-section">
+      <div class="card-title"><span class="ico">🤝</span> مدیریت اعضای کارگروه‌ها</div>
+      <label>کارگروه</label>
+      <select id="groupSelect">
+        <option>تأمین، تعمیر و تجهیز فضاهای آموزشی</option>
+        <option>ساماندهی منابع انسانی</option>
+        <option>توسعه کمی و کیفی کودکستان‌ها</option>
+        <option>کیفیت‌بخشی آموزشی ابتدایی</option>
+        <option>کیفیت‌بخشی آموزشی متوسطه</option>
+        <option>کیفیت‌بخشی تربیتی و تندرستی</option>
+        <option>اطلاع‌رسانی و رسانه</option>
+        <option>ترویج فرهنگ ایثار، شهادت و مقاومت</option>
+      </select>
+      <label>ایمیل</label>
+      <input id="memberName" type="text" placeholder="نام کامل عضو">
+      <label>سمت در کارگروه</label>
+      <input id="memberPost" type="text" placeholder="سمت">
+      <label>شماره تماس</label>
+      <input id="memberPhone" type="text" placeholder="شماره موبایل">
+      <button class="btn btn-gold" id="addMemberBtn">➕ ثبت عضو</button>
+      <hr>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>ردیف</th><th>کارگروه</th><th>نام</th><th>سمت</th><th>تلفن</th><th>عملیات</th></tr></thead>
+        <tbody id="membersTable"></tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- ======== ACTIVITIES ======== -->
+    <div id="activitiesSection" class="card module-section">
+      <div class="card-title"><span class="ico">✅</span> چک‌لیست فعالیت‌های پروژه مهر</div>
+      <div class="notice-box">
+        <strong>پروژه مهر مخصوص اول مهر است</strong>
+        (آماده‌سازی تابستان و بازگشایی مدارس) — نه کل برنامه سالانه.
+        پیش‌فرض این صفحه فقط موارد <span class="tag badge-mehr">مهر</span> و <span class="tag badge-prep">آماده‌سازی</span> را نشان می‌دهد.
+        موارد <span class="tag badge-yearly">سالانه</span> مثل هفته کتاب، دهه فجر و… جزء پروژه مهر نیستند و با فیلتر «همه زمان‌ها» دیده می‌شوند.
+        برای معاونین پرورشی: دکمه «فقط پرورشی» را بزنید.
+        <br>
+        <small>ارزیابی درونی = خودارزیابی مدرسه | ارزیابی بیرونی = بازدید ناظر/کارشناس منطقه</small>
+      </div>
+      <div class="stats-grid" style="margin-bottom:16px;">
+        <div class="stat-box"><div class="stat-ico">✅</div><h3>انجام شده</h3><span id="doneActivities">0</span></div>
+        <div class="stat-box"><div class="stat-ico">📋</div><h3>کل فعالیت‌ها</h3><span>84</span></div>
+        <div class="stat-box"><div class="stat-ico">🌱</div><h3>پرورشی</h3><span id="parvCount">0</span></div>
+        <div class="stat-box"><div class="stat-ico">✅</div><h3>پرورشی انجام‌شده</h3><span id="parvDone">0</span></div>
+        <div class="stat-box"><div class="stat-ico">📈</div><h3>درصد پیشرفت</h3><span id="progressPercent">0%</span></div>
+        <div class="stat-box"><div class="stat-ico">⭐</div><h3>امتیاز</h3><span id="projectScore">0</span></div>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="actBar" style="width:0%"></div></div>
+      <p style="font-size:13px;text-align:center;margin-bottom:12px;">وضعیت: <span id="activitySchoolStatus" class="badge badge-danger">نیازمند پیگیری</span></p>
+      <div class="filter-bar">
+        <div>
+          <label>حوزه</label>
+          <select id="filterDomain">
+            <option value="all">همه</option>
+            <option value="پرورشی">پرورشی</option>
+            <option value="آموزشی">آموزشی</option>
+            <option value="اجرایی">اجرایی</option>
+          </select>
+        </div>
+        <div>
+          <label>زمان اجرا</label>
+          <select id="filterPhase">
+            <option value="اول‌مهر" selected>اول مهر (پروژه مهر)</option>
+            <option value="مهر">فقط مهر</option>
+            <option value="آماده‌سازی">فقط آماده‌سازی</option>
+            <option value="سالانه">سالانه (خارج از پروژه مهر)</option>
+            <option value="all">همه زمان‌ها</option>
+          </select>
+        </div>
+        <div>
+          <label>مقطع</label>
+          <select id="filterLevel">
+            <option value="all">همه مقاطع</option>
+            <option value="مشترک">فقط مشترک</option>
+            <option value="ابتدایی">ابتدایی (+مشترک)</option>
+            <option value="متوسطه اول">متوسطه اول (+مشترک)</option>
+            <option value="متوسطه دوم">متوسطه دوم (+مشترک)</option>
+          </select>
+        </div>
+        <div>
+          <label>جستجو</label>
+          <input id="filterSearch" type="search" placeholder="عنوان یا شماره...">
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 14px;">
+        <span id="filterResultCount" style="font-size:13px;color:var(--dark-mid);"></span>
+        <button type="button" class="btn btn-white" id="filterParvareshiBtn" style="padding:7px 12px;font-size:12px;">🌱 فقط پرورشی</button>
+        <button type="button" class="btn btn-white" id="filterMehrBtn" style="padding:7px 12px;font-size:12px;">📌 فقط اول مهر</button>
+        <button type="button" class="btn btn-white" id="filterResetBtn" style="padding:7px 12px;font-size:12px;">بازنشانی فیلتر</button>
+        <button type="button" class="btn btn-gold" id="exportParvareshiBtn" style="padding:7px 12px;font-size:12px;">⬇️ خروجی فهرست پرورشی</button>
+      </div>
+      <hr>
+      <div id="activitiesContainer"></div>
+    </div>
+
+    <!-- ======== DOCUMENTS ======== -->
+    <div id="documentsSection" class="card module-section">
+      <div class="card-title"><span class="ico">📎</span> مدیریت مستندات پروژه مهر</div>
+      <div class="notice-box">
+        <strong>امنیت فایل:</strong>
+        فایل‌ها خصوصی آپلود می‌شوند و فقط خودتان و ناظر منطقه / ادمین می‌توانند ببینند.
+        پس از ثبت، مستند به <b>کارتابل ناظر</b> می‌رود.
+        <br>
+        <small>نحوه بارگذاری: فعالیت مرتبط → نام مدرسه → عنوان → نوع → فایل → ثبت</small>
+      </div>
+      <label>فعالیت مرتبط</label>
+      <select id="documentActivity"></select>
+      <label>نام مدرسه</label>
+      <input id="documentSchoolName" type="text" placeholder="نام مدرسه ارسال‌کننده">
+      <label>عنوان مستند</label>
+      <input id="documentTitle" type="text" placeholder="عنوان مستند">
+      <label>نوع مستند</label>
+      <select id="documentType">
+        <option>تصویر</option><option>PDF</option><option>Word</option><option>اکسل</option><option>سایر</option>
+      </select>
+      <label>فایل مستند</label>
+      <input type="file" id="documentFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.gif">
+      <button class="btn btn-gold" id="saveDocumentBtn">📤 ثبت مستند</button>
+      <div id="docUploadProgress" class="upload-progress" style="display:none;">
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="docUploadBar" style="width:0%"></div></div>
+        <p id="docUploadText" style="font-size:12px;margin-top:6px;color:var(--dark-mid);">در حال آپلود...</p>
+      </div>
+      <div id="docSavedMsg" style="display:none;color:var(--success);font-size:13px;font-weight:bold;margin-top:8px;">✅ مستند با موفقیت ذخیره شد.</div>
+      <p style="font-size:12px;color:#888;margin-top:4px;">حداکثر حجم: ۲۰ مگ — مشاهده فقط با لینک موقت امن</p>
+      <hr>
+      <div id="documentsList"></div>
+    </div>
+
+    <!-- ======== MEETINGS ======== -->
+    <div id="meetingsSection" class="card module-section">
+      <div class="card-title"><span class="ico">📝</span> ثبت صورتجلسات پروژه مهر</div>
+      <label>شماره جلسه</label>
+      <input id="meetingNumber" type="text" placeholder="شماره جلسه">
+      <label>تاریخ جلسه</label>
+      <input id="meetingDate" type="date">
+      <label>عنوان جلسه</label>
+      <input id="meetingTitle" type="text" placeholder="عنوان جلسه">
+      <label>اعضای حاضر</label>
+      <textarea id="meetingMembers" placeholder="نام اعضای حاضر"></textarea>
+      <label>مصوبات جلسه</label>
+      <textarea id="meetingResolutions" placeholder="مصوبات و تصمیمات"></textarea>
+      <label>مسئول پیگیری</label>
+      <input id="meetingFollowup" type="text" placeholder="نام مسئول پیگیری">
+      <button class="btn btn-gold" id="saveMeetingBtn">💾 ثبت صورتجلسه</button>
+      <button class="btn btn-white" id="printMeetingsBtn">🖨️ چاپ PDF</button>
+      <hr>
+      <div id="meetingsList"></div>
+    </div>
+
+    <!-- ======== REPORTS ======== -->
+    <div id="reportsSection" class="card module-section">
+      <div class="card-title"><span class="ico">📊</span> گزارش نهایی پروژه مهر</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-ico">📈</div><h3>درصد پیشرفت</h3><span id="reportProgress">0%</span></div>
+        <div class="stat-box"><div class="stat-ico">⭐</div><h3>امتیاز نهایی</h3><span id="reportScore">0</span></div>
+        <div class="stat-box"><div class="stat-ico">📎</div><h3>مستندات</h3><span id="reportDocuments">0</span></div>
+        <div class="stat-box"><div class="stat-ico">📝</div><h3>جلسات</h3><span id="reportMeetings">0</span></div>
+      </div>
+      <hr>
+      <h4 style="color:var(--gold);margin-bottom:10px;">عملکرد کارگروه‌ها</h4>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>کارگروه</th><th>تعداد اعضا</th></tr></thead>
+        <tbody id="groupReportTable"></tbody>
+      </table>
+      </div>
+      <hr>
+      <h4 style="color:var(--gold);margin-bottom:10px;">جمع‌بندی مدیریتی</h4>
+      <textarea id="finalReport" rows="12" placeholder="گزارش خودکار تولید می‌شود..."></textarea>
+      <button class="btn btn-gold" id="generateFinalReportBtn">🔄 تولید گزارش</button>
+      <button class="btn btn-white" id="printFinalReportBtn">🖨️ خروجی PDF</button>
+    </div>
+
+    <!-- ======== SCHOOLS ======== -->
+    <div id="schoolsSection" class="card module-section">
+      <div class="card-title"><span class="ico">🏫</span> ثبت مدارس</div>
+      <label>نام مدرسه</label>
+      <input id="schoolName" placeholder="نام مدرسه">
+      <label>کد مدرسه</label>
+      <input id="schoolCode" placeholder="کد مدرسه">
+      <label>نام مدیر</label>
+      <input id="schoolManager" placeholder="نام مدیر مدرسه">
+      <label>مقطع تحصیلی</label>
+      <select id="schoolLevel">
+        <option>ابتدایی</option><option>متوسطه اول</option><option>متوسطه دوم</option><option>هنرستان</option>
+      </select>
+      <button class="btn btn-gold" id="addSchoolBtn">➕ ثبت مدرسه</button>
+      <hr>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>ردیف</th><th>نام مدرسه</th><th>کد</th><th>مدیر</th><th>مقطع</th><th>عملیات</th></tr></thead>
+        <tbody id="schoolsTable"></tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- ======== RANKING ======== -->
+    <div id="rankingSection" class="card module-section">
+      <div class="card-title"><span class="ico">🏆</span> رتبه‌بندی مدارس پروژه مهر</div>
+      <p style="font-size:13px;color:#888;margin-bottom:12px;">امتیاز از پنل ناظر منطقه ثبت می‌شود.</p>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>رتبه</th><th>مدرسه</th><th>مقطع</th><th>مدیر</th><th>امتیاز</th></tr></thead>
+        <tbody id="rankingTable"></tbody>
+      </table>
+      </div>
+    </div>
+
+    <!-- ======== OBSERVER ======== -->
+    <div id="observerSection" class="card module-section">
+      <div class="card-title"><span class="ico">🗂️</span> کارتابل ناظر منطقه</div>
+      <div class="notice-box">
+        <strong>وظیفه ناظر منطقه:</strong>
+        همه <b>مستندات</b> و <b>گزارش‌های ارسالی مدارس</b> اینجا می‌آید (مرتب بر اساس مدرسه و مقطع).
+        ادمین فقط تأیید حساب می‌کند؛ ناظر محتوا را بررسی می‌کند.
+        <br>
+        در انتظار بررسی: <b id="cartablePendingCount">0</b>
+        · گزارش‌های جدید: <b id="cartableReportPending">0</b>
+      </div>
+      <div class="cartable-tabs">
+        <button type="button" class="cartable-tab active" data-cartable-tab="all">همه</button>
+        <button type="button" class="cartable-tab" data-cartable-tab="reports">📤 گزارش‌ها</button>
+        <button type="button" class="cartable-tab" data-cartable-tab="documents">📎 مستندات</button>
+      </div>
+      <input type="hidden" id="cartableTab" value="all">
+      <label>وضعیت</label>
+      <select id="cartableFilter">
+        <option value="pending">در انتظار بررسی</option>
+        <option value="approved">تأیید شده</option>
+        <option value="rejected">رد شده</option>
+        <option value="all">همه وضعیت‌ها</option>
+      </select>
+      <div id="observerCartable" style="margin-top:12px;"></div>
+      <hr>
+      <div class="card-title" style="font-size:15px;"><span class="ico">🔍</span> ارزیابی بازدید مدرسه</div>
+      <label>انتخاب مدرسه</label>
+      <select id="observerSchoolSelect"></select>
+      <label>نتیجه بازدید</label>
+      <textarea id="observerReport" placeholder="گزارش بازدید از مدرسه"></textarea>
+      <label>امتیاز مدرسه (۰ تا ۱۰۰)</label>
+      <input id="observerScore" type="number" min="0" max="100" placeholder="امتیاز">
+      <button class="btn btn-gold" id="saveObserverReportBtn">💾 ثبت ارزیابی</button>
+      <hr>
+      <div id="observerList"></div>
+    </div>
+
+    <!-- ======== FORMS ======== -->
+    <div id="formsSection" class="card module-section">
+      <div class="card-title"><span class="ico">📄</span> فرم‌های رسمی نمون‌برگ پروژه مهر</div>
+
+      <div class="sub-card">
+        <div class="card-title"><span class="ico">1️⃣</span> نمون‌برگ ۱ - ثبت‌نام دانش‌آموزان</div>
+        <label>تعداد ثبت‌نام شده</label><input id="f1_registered" type="number" placeholder="تعداد">
+        <label>تعداد باقی‌مانده</label><input id="f1_remaining" type="number" placeholder="تعداد">
+        <label>توضیحات</label><textarea id="f1_notes" placeholder="توضیحات تکمیلی"></textarea>
+        <button class="btn btn-gold" id="saveForm1Btn">💾 ثبت نمون‌برگ ۱</button>
+      </div>
+
+      <div class="sub-card">
+        <div class="card-title"><span class="ico">2️⃣</span> نمون‌برگ ۲ - ساماندهی نیروی انسانی</div>
+        <label>تعداد معلمان</label><input id="f2_teachers" type="number" placeholder="تعداد">
+        <label>کمبود نیرو</label><input id="f2_shortage" type="number" placeholder="تعداد">
+        <label>توضیحات</label><textarea id="f2_notes" placeholder="توضیحات"></textarea>
+        <button class="btn btn-gold" id="saveForm2Btn">💾 ثبت نمون‌برگ ۲</button>
+      </div>
+
+      <div class="sub-card">
+        <div class="card-title"><span class="ico">3️⃣</span> نمون‌برگ ۳ - تعمیر و تجهیز</div>
+        <label>تعداد کلاس</label><input id="f3_classes" type="number" placeholder="تعداد کلاس‌ها">
+        <label>کلاس آماده</label><input id="f3_ready" type="number" placeholder="تعداد آماده">
+        <label>نیازمندی‌ها</label><textarea id="f3_needs" placeholder="فهرست نیازمندی‌ها"></textarea>
+        <button class="btn btn-gold" id="saveForm3Btn">💾 ثبت نمون‌برگ ۳</button>
+      </div>
+
+      <div class="sub-card">
+        <div class="card-title"><span class="ico">4️⃣</span> نمون‌برگ ۴ - ارزیابی پروژه مهر</div>
+        <label>امتیاز مدرسه (۰-۱۰۰)</label><input id="f4_score" type="number" min="0" max="100" placeholder="امتیاز">
+        <label>نظر ارزیاب</label><textarea id="f4_comment" placeholder="نظر و ارزیابی"></textarea>
+        <button class="btn btn-gold" id="saveForm4Btn">💾 ثبت نمون‌برگ ۴</button>
+      </div>
+
+      <div class="sub-card">
+        <div class="card-title"><span class="ico">5️⃣</span> نمون‌برگ ۵ - گزارش نهایی</div>
+        <textarea id="f5_report" rows="10" placeholder="گزارش نهایی و جامع پروژه مهر..."></textarea>
+        <button class="btn btn-gold" id="saveForm5Btn">💾 ثبت گزارش</button>
+      </div>
+
+      <div id="formsSavedMsg" style="display:none;color:var(--success);font-size:14px;font-weight:bold;margin-top:10px;">✅ نمون‌برگ با موفقیت ثبت شد.</div>
+    </div>
+
+    <!-- ======== CHART ======== -->
+    <div id="chartSection" class="card module-section">
+      <div class="card-title"><span class="ico">📈</span> نمودار آماری پروژه مهر</div>
+      <div style="max-width:380px;margin:0 auto 30px;">
+        <canvas id="progressChart"></canvas>
+      </div>
+      <hr>
+      <h4 style="color:var(--gold);margin-bottom:14px;">اعضای کارگروه‌ها</h4>
+      <canvas id="groupChart"></canvas>
+      <br>
+      <button class="btn btn-white" id="refreshChartsBtn">🔄 بروزرسانی نمودارها</button>
+    </div>
+
+    <!-- ======== BACKUP ======== -->
+    <div id="backupSection" class="card module-section">
+      <div class="card-title"><span class="ico">💾</span> پشتیبان‌گیری و بازیابی</div>
+      <div class="sub-card">
+        <h4 style="color:var(--gold);margin-bottom:10px;">📤 پشتیبان‌گیری</h4>
+        <p style="font-size:13px;color:#666;margin-bottom:14px;">تمام اطلاعات سامانه را در قالب فایل JSON دریافت کنید.</p>
+        <button class="btn btn-gold" id="backupDataBtn">⬇️ دانلود فایل پشتیبان</button>
+        <button class="btn btn-success" id="exportExcelBtn">📊 خروجی Excel فعالیت‌ها</button>
+      </div>
+      <div class="sub-card" style="margin-top:16px;">
+        <h4 style="color:var(--gold);margin-bottom:10px;">📥 بازیابی اطلاعات</h4>
+        <p style="font-size:13px;color:#666;margin-bottom:10px;">فایل پشتیبان JSON را انتخاب کنید.</p>
+        <input type="file" id="restoreFile" accept=".json">
+        <button class="btn btn-warning" id="restoreDataBtn">🔁 بازیابی اطلاعات</button>
+        <div id="restoreLoading" class="loading-state" style="display:none;"><span class="spinner"></span><span>در حال خواندن فایل پشتیبان…</span></div>
+      </div>
+
+      <!-- ===== ACTIVITY LOG ===== -->
+      <div class="sub-card" style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+          <h4 style="color:var(--gold);margin:0;">📋 لاگ فعالیت‌های سامانه</h4>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-white" id="exportLogBtn" style="font-size:12px;padding:6px 12px;">📥 خروجی CSV</button>
+            <button class="btn btn-danger" id="clearLogBtn" style="font-size:12px;padding:6px 12px;">🗑️ پاک کردن</button>
+          </div>
+        </div>
+        <p style="font-size:12px;color:#999;margin-bottom:12px;">ورود، خروج، افزودن، ویرایش، حذف و پشتیبان‌گیری — همه اینجا ثبت می‌شوند.</p>
+        <div id="activityLogList"></div>
+      </div>
+    </div>
+
+    <!-- ======== INSPECTOR PANEL (کارشناس اداره) ======== -->
+    <div id="inspectorSection" class="card module-section">
+      <div class="card-title"><span class="ico">🕵️</span> خلاصه وضعیت ناحیه (ناظر / ادمین)</div>
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">نمای کلی مدارس، نمون‌برگ‌ها و ورودها. تأیید کاربران فقط در بخش «ادمین سایت»؛ بررسی فایل‌ها در «کارتابل ناظر».</p>
+
+      <!-- خلاصه وضعیت -->
+      <div class="stats-grid" style="margin-bottom:18px;">
+        <div class="stat-box">
+          <div class="stat-ico">🏫</div>
+          <h3>مدارس ثبت‌شده</h3>
+          <span id="insSchoolCount">۰</span>
+        </div>
+        <div class="stat-box">
+          <div class="stat-ico">✅</div>
+          <h3>فعالیت انجام‌شده</h3>
+          <span id="insActivityDone">۰ / ۸۴</span>
+        </div>
+        <div class="stat-box">
+          <div class="stat-ico">📄</div>
+          <h3>نمون‌برگ تکمیل‌شده</h3>
+          <span id="insFormsDone">۰ / ۵</span>
+        </div>
+        <div class="stat-box">
+          <div class="stat-ico">🔑</div>
+          <h3>تعداد ورود ثبت‌شده</h3>
+          <span id="insLoginCount">۰</span>
+        </div>
+      </div>
+
+      <!-- مدارس ثبت‌شده -->
+      <h4 style="color:var(--gold);margin-bottom:10px;">🏫 مدارس ثبت‌شده در سامانه</h4>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>نام مدرسه</th><th>کد</th><th>مدیر</th><th>مقطع</th><th>امتیاز</th></tr></thead>
+        <tbody id="insSchoolsTable"></tbody>
+      </table>
+      </div>
+
+      <hr>
+
+      <!-- وضعیت نمون‌برگ‌ها -->
+      <h4 style="color:var(--gold);margin:16px 0 10px;">📄 وضعیت نمون‌برگ‌های رسمی</h4>
+      <div id="insFormsList"></div>
+
+      <hr>
+
+      <!-- لاگ ساعت ورود -->
+      <h4 style="color:var(--gold);margin:16px 0 10px;">🕒 گزارش ورود کاربران به سامانه</h4>
+      <div class="table-scroll">
+      <table>
+        <thead><tr><th>ایمیل</th><th>نقش</th><th>تاریخ</th><th>ساعت ورود</th></tr></thead>
+        <tbody id="insLoginTable"></tbody>
+      </table>
+      </div>
+      <p style="font-size:12px;color:#aaa;margin-top:10px;">📌 این گزارش فقط روی همین دستگاه/مرورگر ذخیره می‌شود.</p>
+
+      <button class="btn btn-white" id="closeInspectorBtn" style="margin-top:16px;">⬅️ بازگشت به داشبورد</button>
+    </div>
+
+  </div><!-- /dashboard -->
+
+  <!-- ===== GUIDE MODAL ===== -->
+  <div id="guideModal" style="display:none;position:fixed;inset:0;background:rgba(13,36,68,.7);z-index:2100;align-items:center;justify-content:center;padding:16px;">
+    <div class="card" style="max-width:560px;width:100%;margin:0;border-top:4px solid var(--primary);max-height:90vh;overflow:auto;">
+      <div class="card-title"><span class="ico">❓</span> راهنمای سریع سامانه پروژه مهر</div>
+      <ol class="guide-list">
+        <li><strong>هدف سامانه:</strong> پروژه مهر برای <em>اول مهر</em> است؛ آماده‌سازی و بازگشایی مدارس — نه هفته کتاب، دهه فجر و کل سال.</li>
+        <li><strong>ورود:</strong> کد پرسنلی و رمز عبور را وارد کنید.</li>
+        <li><strong>چک‌لیست:</strong> پیش‌فرض فقط موارد اول مهر را می‌بینید. برای معاونین پرورشی فیلتر «فقط پرورشی» را بزنید.</li>
+        <li><strong>زمان‌بندی:</strong> «مهر» و «آماده‌سازی» = پروژه مهر؛ «سالانه» خارج از اولویت این پروژه است.</li>
+        <li><strong>مقطع:</strong> برخی فعالیت‌ها مخصوص ابتدایی یا متوسطه‌اند؛ بقیه مشترک‌اند.</li>
+        <li><strong>مستندات:</strong> فعالیت مرتبط → عنوان → نوع فایل → انتخاب فایل → ثبت.</li>
+        <li><strong>گزارش:</strong> گزارش دوره‌ای آماده‌سازی (مثلاً نیمه اول تیر) را از بخش ارسال گزارش ثبت کنید.</li>
+        <li><strong>ارزیابی درونی / بیرونی:</strong> درونی = خودارزیابی مدرسه؛ بیرونی = بازدید ناظر یا کارشناس منطقه.</li>
+      </ol>
+      <p style="font-size:12px;color:#666;margin:10px 0 14px;">در صورت خطای آپلود: حجم فایل را کم کنید (زیر ۲۰ مگ)، اتصال اینترنت را بررسی کنید و چند دقیقه بعد دوباره تلاش نمایید.</p>
+      <button class="btn btn-gold" id="closeGuideBtn" style="width:100%;justify-content:center;">متوجه شدم</button>
+    </div>
+  </div>
+
+  <!-- ===== INSPECTOR PASSWORD MODAL ===== -->
+  <div id="inspectorModal" style="display:none;position:fixed;inset:0;background:rgba(13,36,68,.7);z-index:2000;align-items:center;justify-content:center;padding:16px;">
+    <div class="card" style="max-width:360px;width:100%;margin:0;border-top:4px solid var(--primary);">
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="font-size:40px;margin-bottom:6px;">🔒</div>
+        <div style="font-weight:bold;color:var(--dark-mid);">ورود کارشناس اداره</div>
+        <div style="font-size:12px;color:#999;margin-top:4px;">برای مشاهده‌ی این پنل رمز عبور را وارد کنید</div>
+      </div>
+      <label>رمز عبور</label>
+      <input id="inspectorPassword" type="password" placeholder="رمز عبور را وارد کنید" data-enter-inspector="true">
+      <div id="inspectorPassError" style="display:none;color:var(--danger);font-size:12px;margin:-8px 0 12px;">رمز عبور اشتباه است.</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-gold" id="inspectorLoginBtn" style="flex:1;justify-content:center;">ورود</button>
+        <button class="btn btn-white" id="inspectorCancelBtn" style="flex:1;justify-content:center;">انصراف</button>
+      </div>
+    </div>
+  </div>
+</div><!-- /container -->
+
+<!-- ===== FOOTER ===== -->
+<footer style="
+  text-align: right;
+  padding: 12px 22px;
+  font-size: 11px;
+  color: #78909C;
+  border-top: 1px solid #BBDEFB;
+  background: #F5F8FF;
+  direction: rtl;
+">
+  تنظیم شده توسط کانال شهر بازی دبستان
+</footer>
+
+<script src="js/supabase.js?v=19"></script>
+<script src="js/api.js?v=19"></script>
+<script src="js/ui.js?v=19"></script>
+<script src="js/app.js?v=19"></script>
+<script src="js/auth.js?v=19"></script>
+<script src="js/accounts.js?v=19"></script>
+<script src="js/activities.js?v=19"></script>
+<script src="js/office.js?v=19"></script>
+<script src="js/schools.js?v=19"></script>
+<script src="js/forms.js?v=19"></script>
+<script src="js/reports.js?v=19"></script>
+<script src="js/backup.js?v=19"></script>
+
+<!-- ===== PWA INSTALL BANNER ===== -->
+<div id="pwaInstallBar" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#0D2444;color:#fff;padding:12px 18px;z-index:9999;align-items:center;justify-content:space-between;gap:12px;border-top:3px solid #1565C0;font-size:13px;direction:rtl;">
+  <span>📲 این سامانه را روی دستگاه خود نصب کنید</span>
+  <div style="display:flex;gap:8px;flex-shrink:0;">
+    <button id="pwaInstallBtn" style="background:#1565C0;color:#fff;border:none;padding:8px 16px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:bold;">نصب</button>
+    <button id="pwaInstallDismissBtn" style="background:transparent;color:#90CAF9;border:1px solid #90CAF9;padding:8px 12px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:12px;">بعداً</button>
+  </div>
+</div>
+
+<script src="js/init.js?v=19"></script>
+
+</body>
+</html>
